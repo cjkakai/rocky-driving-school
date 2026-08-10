@@ -1,0 +1,5 @@
+logs/
+.env
+staticfiles/
+db.sqlite3
+__pycache__/.env.development
