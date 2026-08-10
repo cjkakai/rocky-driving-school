@@ -1,14 +1,14 @@
 import { useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Phone, ChevronDown, ChevronUp, Search, Loader2,
+  Phone, Search, Loader2,
   ChevronLeft, ChevronRight, BookOpen, CheckCircle,
-  Pencil, Trash2, IdCard,
+  Pencil, Trash2, IdCard, Eye,
 } from "lucide-react";
 import { Btn, ProgressBar, Badge } from "../ui";
-import { ExpandedRow } from "./ExpandedRow";
 import {
   fmt, fmtDate, fmtTime, computeTotals, studentStatusBadge,
-  COURSE_STATUS_CONFIG, getCourseStatus,
+  getCourseStatus,
 } from "../utils/students.utils";
 import {
   adminPrimaryAction, branchPrimaryAction,
@@ -46,10 +46,7 @@ function CourseProgressCell({ student }) {
               border: `1px solid ${cfg.color}40`,
             }}
           >
-            <span
-              className="w-1.5 h-1.5 rounded-full shrink-0"
-              style={{ background: cfg.color }}
-            />
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cfg.color }} />
             {count} {cfg.short}
           </span>
         );
@@ -113,13 +110,14 @@ function NextActionCell({ student, isBranchUser, isSuperAdmin, onEnroll, onAppro
 
 /* ─── Student row ────────────────────────────────────────────────── */
 function StudentRow({
-  student, expandedRow, toggleRow,
+  student,
   isBranchUser, isSuperAdmin,
   onApprovePdl, onApproveExam, onEnroll,
   onEdit, onDelete,
-  exams, courses, refresh, patchStudent, isEvenRow,
+  isEvenRow,
 }) {
-  const isExpanded = expandedRow === student.id;
+  const navigate = useNavigate();
+  const location = useLocation();
   const totals = useMemo(() => computeTotals(student), [student]);
 
   const { courseDisplay, courseNamesTitle } = useMemo(() => {
@@ -130,119 +128,114 @@ function StudentRow({
     };
   }, [student]);
 
+  const handleView = () => {
+    navigate(`/dashboard/students/${student.id}/overview`, {
+      state: { from: location.pathname },
+    });
+  };
+
   return (
-    <>
-      <tr
-        className={`
-          group border-b border-gray-200 transition-all duration-150
-          ${isEvenRow ? "bg-gray-50/40" : "bg-white"}
-          ${isExpanded
-            ? "bg-blue-50/50 border-l-4 border-l-blue-500 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.08)]"
-            : "hover:bg-blue-50/30 hover:shadow-[inset_0_0_0_1px_rgba(59,130,246,0.05)]"}
-        `}
-      >
-        {/* Expand toggle */}
-        <td className="px-1 py-3 text-center">
-          <button
-            type="button"
-            aria-expanded={isExpanded}
-            aria-label={isExpanded ? "Collapse student" : "Expand student"}
-            onClick={() => toggleRow(student.id)}
-            className={`p-1.5 rounded-lg transition-all ${isExpanded ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100 text-gray-400"}`}
-          >
-            {isExpanded
-              ? <ChevronUp className="w-4 h-4" />
-              : <ChevronDown className="w-4 h-4" />}
-          </button>
-        </td>
+    <tr
+      className={`
+        border-b border-gray-200 transition-all duration-150
+        ${isEvenRow ? "bg-gray-50/40" : "bg-white"}
+        hover:bg-blue-50/30
+      `}
+    >
+      {/* Reg date */}
+      <td className="px-4 py-4 whitespace-nowrap">
+        <div className="flex flex-col">
+          <span className="text-xs font-semibold text-gray-700 tabular-nums">{fmtDate(student.created_at)}</span>
+          <span className="text-[11px] text-gray-400 tabular-nums">{fmtTime(student.created_at)}</span>
+        </div>
+      </td>
 
-        {/* Reg date */}
-        <td className="px-4 py-4 whitespace-nowrap">
-          <div className="flex flex-col">
-            <span className="text-xs font-semibold text-gray-700 tabular-nums">{fmtDate(student.created_at)}</span>
-            <span className="text-[11px] text-gray-400 tabular-nums">{fmtTime(student.created_at)}</span>
-          </div>
-        </td>
+      {/* Adm no */}
+      <td className="px-4 py-4 whitespace-nowrap">
+        <span className="font-mono text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md tracking-wide">
+          {student.admission_number}
+        </span>
+      </td>
 
-        {/* Adm no */}
-        <td className="px-4 py-4 whitespace-nowrap">
-          <span className="font-mono text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md tracking-wide">
-            {student.admission_number}
+      {/* Branch */}
+      <td className="px-4 py-4 whitespace-nowrap">
+        <span className="text-xs font-semibold text-gray-600 uppercase">{student.branch?.name ?? "—"}</span>
+      </td>
+
+      {/* Student name + courses */}
+      <td className="px-4 py-4">
+        <p className="font-extrabold text-gray-900 text-sm leading-tight">{student.full_name}</p>
+        <p className="text-[11px] text-gray-400 mt-0.5 truncate max-w-[180px]" title={courseNamesTitle}>
+          {courseDisplay}
+        </p>
+      </td>
+
+      {/* Student aggregate status */}
+      <td className="px-4 py-4">{studentStatusBadge(student.status)}</td>
+
+      {/* Course Progress Summary */}
+      <td className="px-4 py-3">
+        <CourseProgressCell student={student} />
+      </td>
+
+      {/* Phone + ID */}
+      <td className="px-4 py-4 whitespace-nowrap">
+        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+          <Phone className="w-3 h-3 text-gray-400 shrink-0" />
+          <span className="tabular-nums">{student.phone}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5">
+          <IdCard className="w-3 h-3 shrink-0" />
+          <span className="tabular-nums">{student.id_number}</span>
+        </div>
+      </td>
+
+      {/* Amount agreed */}
+      <td className="px-4 py-4 whitespace-nowrap">
+        <span className="text-sm font-black text-gray-800 tabular-nums">{fmt(totals.agreedTotal)}</span>
+      </td>
+
+      {/* Progress */}
+      <td className="px-4 py-4 min-w-[110px]">
+        <ProgressBar value={totals.progress} />
+      </td>
+
+      {/* Balance */}
+      <td className="px-4 py-4 whitespace-nowrap">
+        {totals.balance > 0 ? (
+          <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full tabular-nums">
+            {fmt(totals.balance)}
           </span>
-        </td>
+        ) : (
+          <span className="text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+            Cleared
+          </span>
+        )}
+      </td>
 
-        {/* Branch */}
-        <td className="px-4 py-4 whitespace-nowrap">
-          <span className="text-xs font-semibold text-gray-600 uppercase">{student.branch?.name ?? "—"}</span>
-        </td>
+      {/* Next action */}
+      <td className="px-4 py-4">
+        <NextActionCell
+          student={student}
+          isBranchUser={isBranchUser}
+          isSuperAdmin={isSuperAdmin}
+          onEnroll={onEnroll}
+          onApprovePdl={onApprovePdl}
+          onApproveExam={onApproveExam}
+        />
+      </td>
 
-        {/* Student name + courses */}
-        <td className="px-4 py-4">
-          <p className="font-extrabold text-gray-900 text-sm leading-tight">{student.full_name}</p>
-          <p className="text-[11px] text-gray-400 mt-0.5 truncate max-w-[180px]" title={courseNamesTitle}>
-            {courseDisplay}
-          </p>
-        </td>
-
-        {/* Student aggregate status */}
-        <td className="px-4 py-4">{studentStatusBadge(student.status)}</td>
-
-        {/* Course Progress Summary — replaces old single "Status" */}
-        <td className="px-4 py-3">
-          <CourseProgressCell student={student} />
-        </td>
-
-        {/* Phone + ID */}
-        <td className="px-4 py-4 whitespace-nowrap">
-          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <Phone className="w-3 h-3 text-gray-400 shrink-0" />
-            <span className="tabular-nums">{student.phone}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5">
-            <IdCard className="w-3 h-3 shrink-0" />
-            <span className="tabular-nums">{student.id_number}</span>
-          </div>
-        </td>
-
-        {/* Amount agreed */}
-        <td className="px-4 py-4 whitespace-nowrap">
-          <span className="text-sm font-black text-gray-800 tabular-nums">{fmt(totals.agreedTotal)}</span>
-        </td>
-
-        {/* Progress */}
-        <td className="px-4 py-4 min-w-[110px]">
-          <ProgressBar value={totals.progress} />
-        </td>
-
-        {/* Balance */}
-        <td className="px-4 py-4 whitespace-nowrap">
-          {totals.balance > 0 ? (
-            <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full tabular-nums">
-              {fmt(totals.balance)}
-            </span>
-          ) : (
-            <span className="text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-              Cleared
-            </span>
-          )}
-        </td>
-
-        {/* Next action */}
-        <td className="px-4 py-4">
-          <NextActionCell
-            student={student}
-            isBranchUser={isBranchUser}
-            isSuperAdmin={isSuperAdmin}
-            onEnroll={onEnroll}
-            onApprovePdl={onApprovePdl}
-            onApproveExam={onApproveExam}
-          />
-        </td>
-
-        {/* Edit / Delete — super_admin only */}
-        {isSuperAdmin && (
-          <td className="px-4 py-4">
-            <div className="flex items-center gap-1.5">
+      {/* Actions: View + Edit/Delete */}
+      <td className="px-4 py-4">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleView}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm whitespace-nowrap"
+          >
+            <Eye className="w-3.5 h-3.5" /> View
+          </button>
+          {isSuperAdmin && (
+            <>
               <button
                 onClick={() => onEdit?.(student)}
                 title="Edit student"
@@ -257,32 +250,11 @@ function StudentRow({
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
-            </div>
-          </td>
-        )}
-      </tr>
-
-      {/* Expanded content */}
-      {isExpanded && (
-        <tr>
-          <td
-            colSpan={12}
-            className="px-6 py-6 bg-gradient-to-r from-blue-50/60 via-blue-50/30 to-white border-b border-blue-100"
-          >
-            <ExpandedRow
-              student={student}
-              exams={exams}
-              courses={courses ?? []}
-              isBranchUser={isBranchUser}
-              isSuperAdmin={isSuperAdmin}
-              onEnroll={onEnroll}
-              onSuccess={refresh}
-              onPatch={patchStudent ? (updater) => patchStudent(student.id, updater) : null}
-            />
-          </td>
-        </tr>
-      )}
-    </>
+            </>
+          )}
+        </div>
+      </td>
+    </tr>
   );
 }
 
@@ -390,19 +362,18 @@ export function StudentTable({
         <table className="w-full text-[0.875rem]">
           <thead>
             <tr style={{ background: "linear-gradient(135deg, #0f172a, #1e3a5f)" }}>
-              <th className="w-8 px-1 py-3.5" />
               <TH>Reg. Date</TH>
               <TH>Adm. No</TH>
               <TH>Branch</TH>
               <TH>Student</TH>
               <TH>Status</TH>
-              <TH>Progress</TH>
+              <TH>Courses</TH>
               <TH>Contact</TH>
               <TH>Amount</TH>
               <TH>Progress</TH>
               <TH>Balance</TH>
               <TH>Next Action</TH>
-              {isSuperAdmin && <TH>Actions</TH>}
+              <TH>Actions</TH>
             </tr>
           </thead>
 

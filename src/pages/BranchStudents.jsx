@@ -28,7 +28,6 @@ export default function BranchStudents() {
   const {
     students, loading, error,
     filters, setFilter, setFiltersMany,
-    expandedRow, toggleRow,
     page, setPage, pageSize, totalCount, totalPages,
     refresh, refreshSummary, patchStudent, summary,
   } = useStudents({ isBranchUser: true });
@@ -127,8 +126,6 @@ export default function BranchStudents() {
         <StudentTable
           students={students}
           loading={loading}
-          expandedRow={expandedRow}
-          toggleRow={toggleRow}
           isBranchUser={true}
           isSuperAdmin={false}
           onApprovePdl={() => {}}

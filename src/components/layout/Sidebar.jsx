@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, FileText,
   BarChart3, Settings, BookOpen, GitBranch, UserCog,
-  ChevronLeft, ChevronRight, MessageSquare, Car, Receipt, TrendingUp, Crosshair,
+  ChevronLeft, ChevronRight, MessageSquare, Car, Receipt, TrendingUp, Crosshair, GraduationCap,
 } from "lucide-react";
 import { useSidebar } from "../../context/SidebarContext";
 import { useAuth } from "../../context/AuthContext";
@@ -15,6 +15,7 @@ const getMenuItems = (role) => [
   { path: "/dashboard/broadcast",   label: "Broadcast", icon: MessageSquare, adminOnly: true },
   { path: "/dashboard/expenses",    label: "Performance", icon: TrendingUp,  adminOnly: true },
   { path: "/dashboard/targets",     label: "Targets",     icon: Crosshair },
+  { path: "/dashboard/instructors", label: "Instructors", icon: GraduationCap },
   { path: "/dashboard/reports",     label: "Reports",   icon: BarChart3 },
   { path: "/dashboard/vehicles",    label: "Vehicles",  icon: Car,        adminOnly: true },
   { path: "/dashboard/branches",    label: "Branches",  icon: GitBranch,  adminOnly: true },
@@ -82,7 +83,7 @@ export default function Sidebar() {
 
       {!isCollapsed && (
         <div className="p-4 text-xs text-sidebar-foreground/50 border-t border-sidebar-border">
-          © 2026 Five Star Driving School Limited
+          © 2026 Rocky Driving School
         </div>
       )}
     </aside>

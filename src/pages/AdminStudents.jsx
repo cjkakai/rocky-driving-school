@@ -32,7 +32,6 @@ export default function AdminStudents() {
   const {
     students, loading, error,
     filters, setFilter, setFiltersMany,
-    expandedRow, toggleRow,
     page, setPage, pageSize, totalCount, totalPages,
     refresh, refreshSummary, patchStudent, summary,
   } = useStudents();
@@ -171,8 +170,6 @@ export default function AdminStudents() {
         <StudentTable
           students={students}
           loading={loading}
-          expandedRow={expandedRow}
-          toggleRow={toggleRow}
           isBranchUser={false}
           isSuperAdmin={true}
           onApprovePdl={handleApprovePdl}

@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
-from .models import Course, StudentCourse, CourseTransfer
-from .serializers import CourseSerializer, StudentCourseSerializer
+from .models import Course, StudentCourse, CourseTransfer, Lesson, Instructor
+from .serializers import CourseSerializer, StudentCourseSerializer, LessonSerializer, InstructorSerializer, VehicleSerializer
 from students.lifecycle import apply_pdl_reactivation, apply_retake, mark_refresher_completed, on_payment_completed, sync_student_status
 
 
@@ -186,3 +186,141 @@ class StudentCourseViewSet(viewsets.ModelViewSet):
             StudentCourseSerializer(new_sc, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+class LessonViewSet(viewsets.ModelViewSet):
+    serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticated]
+
+    def _base_queryset(self):
+        return Lesson.objects.select_related(
+            "student_course__course", "student", "branch",
+            "instructor", "vehicle", "created_by",
+        )
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = self._base_queryset()
+        if user.role == "branch_user":
+            qs = qs.filter(student__branch=user.branch)
+        student_id = self.request.query_params.get("student_id")
+        if student_id:
+            qs = qs.filter(student_id=student_id)
+        student_course_id = self.request.query_params.get("student_course_id")
+        if student_course_id:
+            qs = qs.filter(student_course_id=student_course_id)
+        return qs
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        student_course = serializer.validated_data.get("student_course")
+        # Branch user can only create lessons for their own branch's students
+        if user.role == "branch_user":
+            if student_course and student_course.student.branch != user.branch:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("You can only add lessons for students in your branch.")
+        branch = serializer.validated_data.get("branch") or (
+            student_course.student.branch if student_course else None
+        )
+        serializer.save(
+            student=student_course.student,
+            branch=branch,
+            created_by=user,
+        )
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        lesson = self.get_object()
+        if user.role == "branch_user" and lesson.student.branch != user.branch:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit lessons for students in your branch.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if user.role == "branch_user" and instance.student.branch != user.branch:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only delete lessons for students in your branch.")
+        instance.delete()
+
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        """Returns lesson progress summary for a student."""
+        student_id = request.query_params.get("student_id")
+        if not student_id:
+            return Response({"detail": "student_id is required."}, status=400)
+
+        user = request.user
+        if user.role == "branch_user":
+            from students.models import Student
+            try:
+                student = Student.objects.get(pk=student_id, branch=user.branch)
+            except Student.DoesNotExist:
+                return Response({"detail": "Not found."}, status=404)
+
+        student_course_id = request.query_params.get("student_course_id")
+
+        qs = self._base_queryset().filter(student_id=student_id)
+        if student_course_id:
+            qs = qs.filter(student_course_id=student_course_id)
+
+        total = qs.count()
+        completed = qs.filter(status="completed").count()
+        scheduled = qs.filter(status="scheduled").count()
+        cancelled = qs.filter(status="cancelled").count()
+        no_show = qs.filter(status="no_show").count()
+
+        total_minutes = sum(
+            l.duration_minutes for l in qs.filter(status="completed")
+        )
+
+        import re
+        from academics.models import StudentCourse
+        if student_course_id:
+            sc_qs = StudentCourse.objects.filter(pk=student_course_id).select_related("course")
+        else:
+            sc_qs = StudentCourse.objects.filter(
+                student_id=student_id
+            ).exclude(status="transferred").select_related("course")
+
+        total_required = 0
+        for sc in sc_qs:
+            match = re.search(r"\d+", sc.course.lessons or "")
+            total_required += int(match.group()) if match else 0
+
+        return Response({
+            "total": total,
+            "completed": completed,
+            "scheduled": scheduled,
+            "cancelled": cancelled,
+            "no_show": no_show,
+            "total_minutes": total_minutes,
+            "total_required": total_required,
+            "remaining": max(0, total_required - completed),
+        })
+
+
+class InstructorViewSet(viewsets.ModelViewSet):
+    serializer_class = InstructorSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Instructor.objects.select_related("branch")
+        if self.request.query_params.get("include_inactive") != "true":
+            qs = qs.filter(is_active=True)
+        if user.role == "branch_user" and user.branch:
+            qs = qs.filter(branch=user.branch)
+        return qs
+
+    def perform_destroy(self, instance):
+        # Soft-delete: deactivate instead of hard delete
+        instance.is_active = False
+        instance.save(update_fields=["is_active"])
+
+    @action(detail=True, methods=["post"])
+    def reactivate(self, request, pk=None):
+        instructor = self.get_object()
+        instructor.is_active = True
+        instructor.save(update_fields=["is_active"])
+        return Response(InstructorSerializer(instructor).data)

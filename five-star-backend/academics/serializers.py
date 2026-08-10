@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Course, StudentCourse
+from .models import Course, StudentCourse, Lesson, Instructor
+from vehicles.models import Vehicle
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -94,3 +95,50 @@ class StudentCourseSerializer(serializers.ModelSerializer):
             "exam_attempt_count", "last_exam_result",
             "registration_date", "updated_at",
         ]
+
+
+class InstructorSerializer(serializers.ModelSerializer):
+    branch_name = serializers.CharField(source="branch.name", read_only=True)
+
+    class Meta:
+        model = Instructor
+        fields = ["id", "full_name", "phone", "licence_number", "branch", "branch_name", "is_active"]
+
+
+class VehicleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehicle
+        fields = ["id", "registration_number", "vehicle_name", "vehicle_type"]
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    instructor_name = serializers.SerializerMethodField()
+    vehicle_display = serializers.SerializerMethodField()
+    course_name = serializers.CharField(source="student_course.course.class_name", read_only=True)
+
+    def get_instructor_name(self, obj):
+        return obj.instructor.full_name if obj.instructor else None
+
+    def get_vehicle_display(self, obj):
+        if not obj.vehicle:
+            return None
+        return f"{obj.vehicle.registration_number} — {obj.vehicle.vehicle_name}"
+
+    class Meta:
+        model = Lesson
+        fields = [
+            "id", "student_course", "student", "branch",
+            "instructor", "instructor_name",
+            "vehicle", "vehicle_display",
+            "date", "start_time", "end_time", "duration_minutes",
+            "lesson_type", "status", "notes", "instructor_remarks",
+            "course_name", "created_by", "created_at", "updated_at",
+        ]
+        read_only_fields = ["student", "branch", "duration_minutes", "created_by", "created_at", "updated_at"]
+
+    def validate(self, data):
+        start = data.get("start_time")
+        end = data.get("end_time")
+        if start and end and end <= start:
+            raise serializers.ValidationError({"end_time": "End time must be after start time."})
+        return data

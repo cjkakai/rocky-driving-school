@@ -1,5 +1,6 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import DashboardLayout from "../components/layout/Layout";
+import WorkspaceLayout from "../components/layout/WorkspaceLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
@@ -19,7 +20,12 @@ import UserManagement from "../pages/UserManagement";
 import SessionManagement from "../pages/SessionManagement";
 import Broadcast from "../pages/Broadcast";
 import Targets from "../pages/Targets";
-import ForgotPassword from "../pages/ForgotPassword"
+import ForgotPassword from "../pages/ForgotPassword";
+import StudentWorkspaceLayout from "../students/workspace/StudentWorkspaceLayout";
+import StudentOverview from "../students/workspace/StudentOverview";
+import StudentPayments from "../students/workspace/StudentPayments";
+import StudentEnrollment from "../students/workspace/StudentEnrollment";
+import StudentLessons from "../students/workspace/StudentLessons";
 
 const adminOnly = ["super_admin"];
 
@@ -43,10 +49,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: "my-students",
-        element: <BranchStudents />,
-      },
+      { path: "my-students", element: <BranchStudents /> },
       { path: "payments", element: <Payments /> },
       { path: "attendance", element: <Attendance /> },
       { path: "instructors", element: <Instructors /> },
@@ -110,6 +113,27 @@ const router = createBrowserRouter([
         ),
       },
       { path: "targets", element: <Targets /> },
+    ],
+  },
+  // ── Student workspace — no app sidebar ──────────────────────────
+  {
+    path: "/dashboard/students/:studentId",
+    element: (
+      <ProtectedRoute>
+        <WorkspaceLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        element: <StudentWorkspaceLayout />,
+        children: [
+          { index: true, element: <Navigate to="overview" replace /> },
+          { path: "overview",    element: <StudentOverview /> },
+          { path: "payments",    element: <StudentPayments /> },
+          { path: "enrollment",  element: <StudentEnrollment /> },
+          { path: "lessons",     element: <StudentLessons /> },
+        ],
+      },
     ],
   },
 ]);

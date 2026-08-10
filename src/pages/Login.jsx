@@ -19,7 +19,7 @@ const QUOTES = [
   "Great service is not an event, it is a daily commitment.",
   "Every branch carries the reputation of the entire school.",
   "Great institutions are built by teams that take pride in the details.",
-].map((text, i) => ({ text, author: "Five Star Driving School Ltd", ...PALETTE[i % PALETTE.length] }));
+].map((text, i) => ({ text, author: "Rocky Driving School", ...PALETTE[i % PALETTE.length] }));
 
 const INTERVAL = 10000;
 
@@ -500,7 +500,7 @@ export default function Login() {
                     width:"100%", height:"100%", borderRadius:"50%",
                     overflow:"hidden", background:"#fff",
                   }}>
-                    <img src="/fiveStarLogo.webp" alt="Logo"
+                    <img src="/fiveStarLogo.webp" alt="Rocky"
                       style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
                 </div>
@@ -510,7 +510,7 @@ export default function Login() {
                   letterSpacing:"-.01em",
                   fontFamily:"'DM Sans',sans-serif",
                 }}>
-                  Five Star Driving School
+                  Rocky Driving School
                 </span>
               </div>
             </div>
@@ -607,7 +607,7 @@ export default function Login() {
                   fontSize:10, color:"rgba(255,255,255,0.18)",
                   fontFamily:"'DM Mono',monospace",
                 }}>
-                  © {new Date().getFullYear()} Five Star Driving School Ltd
+                  © {new Date().getFullYear()} Rocky Driving School
                 </span>
               </div>
             </div>

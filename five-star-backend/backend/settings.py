@@ -186,7 +186,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://165.227.192.58',
-    'https://www.fivestardrivingschoolltd.co.ke'
+    config("CORS_EXTRA_ORIGIN", default="https://www.fivestardrivingschoolltd.co.ke"),
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -201,7 +201,7 @@ CONNECTION_ID = config("CONNECTION_ID")
 ONFON_API_KEY = config("ONFON_API_KEY", default="")
 ONFON_CLIENT_ID = config("ONFON_CLIENT_ID", default="")
 ONFON_ACCESS_KEY = config("ONFON_ACCESS_KEY", default="")
-ONFON_SENDER_ID = config("ONFON_SENDER_ID", default="FIVESTAR")
+ONFON_SENDER_ID = config("ONFON_SENDER_ID", default="ROCKY")
 
 HQ_PHONE = "+254 727 555 558"
 
