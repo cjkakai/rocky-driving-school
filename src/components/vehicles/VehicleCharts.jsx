@@ -3,19 +3,20 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
+import { Car } from "lucide-react";
 import { vehiclesAPI } from "../../api/vehicles.api";
 
-const STATUS_COLORS = ["#16a34a", "#dc2626", "#d97706", "#6366f1"];
+const STATUS_COLORS = ["#16a34a", "#e11d48", "#d97706", "#6b7280"];
 
 const today = () => new Date().toISOString().slice(0, 10);
 const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
 
 const PERIODS = [
-  { label: "Today",      dateFrom: today(),    dateTo: today() },
-  { label: "Yesterday",  dateFrom: daysAgo(1), dateTo: daysAgo(1) },
-  { label: "This Week",  dateFrom: daysAgo(6), dateTo: today() },
-  { label: "This Month", dateFrom: daysAgo(29),dateTo: today() },
-  { label: "Custom",     dateFrom: null,       dateTo: null },
+  { label: "Today",      dateFrom: today(),     dateTo: today() },
+  { label: "Yesterday",  dateFrom: daysAgo(1),  dateTo: daysAgo(1) },
+  { label: "This Week",  dateFrom: daysAgo(6),  dateTo: today() },
+  { label: "This Month", dateFrom: daysAgo(29), dateTo: today() },
+  { label: "Custom",     dateFrom: null,        dateTo: null },
 ];
 
 function PieTooltip({ active, payload }) {
@@ -61,29 +62,30 @@ export function VehicleCharts({ vehicles }) {
       .finally(() => setLoadingTrips(false));
   }, [JSON.stringify(periodParams)]);
 
-  const statusData = useMemo(() => {
-    return [
-      { name: "Insurance Active",  value: vehicles.filter((v) => v.insurance_status === "ACTIVE").length },
-      { name: "Insurance Expired", value: vehicles.filter((v) => v.insurance_status === "EXPIRED").length },
-      { name: "Inspection Due",    value: vehicles.filter((v) => v.inspection_status === "DUE").length },
-      { name: "Inspection OK",     value: vehicles.filter((v) => v.inspection_status === "NOT_DUE").length },
-    ].filter((d) => d.value > 0);
-  }, [vehicles]);
+  const statusData = useMemo(() => [
+    { name: "Insurance Active",  value: vehicles.filter((v) => v.insurance_status === "ACTIVE").length },
+    { name: "Insurance Expired", value: vehicles.filter((v) => v.insurance_status === "EXPIRED").length },
+    { name: "Inspection Due",    value: vehicles.filter((v) => v.inspection_status === "DUE").length },
+    { name: "Inspection OK",     value: vehicles.filter((v) => v.inspection_status === "NOT_DUE").length },
+  ].filter((d) => d.value > 0), [vehicles]);
 
-  const barData = tripData.map((v) => ({
-    name: v.registration,
-    lessons: v.total_lessons,
-  }));
+  const barData = tripData.map((v) => ({ name: v.registration, lessons: v.total_lessons }));
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-5">
-      {/* Status Donut — compact sidebar */}
+    <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-5">
+
+      {/* Status Donut */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 pt-5 pb-4 border-b border-gray-50">
-          <h3 className="font-bold text-gray-900 text-base">Vehicle Status</h3>
-          <p className="text-xs text-gray-400 mt-0.5">Insurance & inspection</p>
+        <div className="px-5 pt-5 pb-4 border-b border-gray-50 flex items-center gap-3">
+          <div className="p-2 bg-gray-100 rounded-xl">
+            <Car className="w-4 h-4 text-gray-600" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900 text-base">Fleet Status</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Insurance & inspection</p>
+          </div>
         </div>
-        <div className="p-4">
+        <div className="p-5">
           {!statusData.length ? (
             <div className="py-10 flex items-center justify-center text-gray-400 text-sm">No data</div>
           ) : (
@@ -91,18 +93,28 @@ export function VehicleCharts({ vehicles }) {
               <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={2} dataKey="value">
-                      {statusData.map((_, i) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
+                    <Pie
+                      data={statusData}
+                      cx="50%" cy="50%"
+                      innerRadius={50} outerRadius={75}
+                      paddingAngle={2} dataKey="value"
+                    >
+                      {statusData.map((_, i) => (
+                        <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />
+                      ))}
                     </Pie>
                     <Tooltip content={<PieTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-2.5">
                 {statusData.map((d, i) => (
                   <div key={d.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: STATUS_COLORS[i % STATUS_COLORS.length] }} />
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ background: STATUS_COLORS[i % STATUS_COLORS.length] }}
+                      />
                       <span className="text-xs text-gray-600">{d.name}</span>
                     </div>
                     <span className="text-xs font-bold text-gray-900">{d.value}</span>
@@ -114,7 +126,7 @@ export function VehicleCharts({ vehicles }) {
         </div>
       </div>
 
-      {/* Top Vehicles by Trips */}
+      {/* Top Vehicles by Lessons */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-5 pt-5 pb-4 border-b border-gray-50">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -122,15 +134,15 @@ export function VehicleCharts({ vehicles }) {
               <h3 className="font-bold text-gray-900 text-base">Top Vehicles by Lessons</h3>
               <p className="text-xs text-gray-400 mt-0.5">Practical lessons from daily reports</p>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
               {PERIODS.map((p) => (
                 <button
                   key={p.label}
                   onClick={() => setActivePeriod(p.label)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                     activePeriod === p.label
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                      ? "bg-[#1a0a0b] text-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   {p.label}
@@ -144,7 +156,7 @@ export function VehicleCharts({ vehicles }) {
                 type="date"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all"
               />
               <span className="text-gray-300 text-xs">→</span>
               <input
@@ -152,7 +164,7 @@ export function VehicleCharts({ vehicles }) {
                 value={customTo}
                 min={customFrom}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all"
               />
             </div>
           )}
@@ -161,10 +173,13 @@ export function VehicleCharts({ vehicles }) {
           {loadingTrips ? (
             <div className="h-72 bg-gray-50 rounded-xl animate-pulse" />
           ) : !barData.length ? (
-            <div className="h-72 flex items-center justify-center text-gray-400 text-sm">No trip data yet</div>
+            <div className="h-72 flex flex-col items-center justify-center gap-2 text-gray-400">
+              <p className="text-sm font-medium">No lesson data for this period</p>
+              <p className="text-xs">Try a different date range</p>
+            </div>
           ) : (() => {
             const needsScroll = barData.length > 5;
-            const chartWidth  = needsScroll ? barData.length * 80 + 60 : undefined;
+            const chartWidth = needsScroll ? barData.length * 80 + 60 : undefined;
             const chart = (
               <BarChart
                 {...(needsScroll ? { width: chartWidth, height: 288 } : {})}
@@ -172,16 +187,18 @@ export function VehicleCharts({ vehicles }) {
                 margin={{ top: 8, right: 8, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} allowDecimals={false} width={32} />
-                <Tooltip content={<BarTooltip />} cursor={{ fill: "#f8fafc", radius: 6 }} />
-                <Bar dataKey="lessons" fill="#2563eb" fillOpacity={1} radius={[8, 8, 0, 0]} maxBarSize={56} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} allowDecimals={false} width={32} />
+                <Tooltip content={<BarTooltip />} cursor={{ fill: "#f9fafb", radius: 6 }} />
+                <Bar dataKey="lessons" fill="#1a0a0b" fillOpacity={1} radius={[6, 6, 0, 0]} maxBarSize={52} />
               </BarChart>
             );
             return needsScroll ? (
               <div className="overflow-x-auto overflow-y-hidden">{chart}</div>
             ) : (
-              <div className="h-72"><ResponsiveContainer width="100%" height="100%">{chart}</ResponsiveContainer></div>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">{chart}</ResponsiveContainer>
+              </div>
             );
           })()}
         </div>

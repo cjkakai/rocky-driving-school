@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Car } from "lucide-react";
 import { Btn, Toast, useToast } from "../ui";
 import { DeleteConfirmModal } from "../ui/DeleteConfirmModal";
 import { vehiclesAPI } from "../api/vehicles.api";
@@ -9,7 +9,7 @@ import { VehicleTable } from "../components/vehicles/VehicleTable";
 import { VehicleModal } from "../components/vehicles/VehicleModal";
 
 const QUICK_FILTERS = [
-  { key: "all",               label: "All Vehicles" },
+  { key: "all",               label: "All" },
   { key: "active_insurance",  label: "Active Insurance" },
   { key: "expired_insurance", label: "Expired Insurance" },
   { key: "inspection_due",    label: "Inspection Due" },
@@ -47,41 +47,60 @@ export default function Vehicles() {
   };
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Vehicle Management</h1>
-          <p className="text-gray-500 mt-1 text-sm">Global fleet — insurance, inspection & utilisation tracking</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {QUICK_FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setQuickFilter(f.key)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
-                quickFilter === f.key
-                  ? "bg-[#1a0a0b] text-white border-[#1a0a0b] shadow-sm"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-          <Btn onClick={() => { setEditVehicle(null); setModalOpen(true); }}>
-            <Plus className="w-4 h-4" /> Add Vehicle
-          </Btn>
+    <div className="min-h-screen">
+
+      {/* Page header */}
+      <div className="bg-white border-b border-gray-100 px-6 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#1a0a0b] flex items-center justify-center shadow-md shrink-0">
+              <Car className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-gray-900 tracking-tight leading-none">
+                Vehicle Management
+              </h1>
+              <p className="text-[11px] text-gray-400 mt-0.5 font-medium">
+                Fleet · insurance, inspection & utilisation tracking
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Quick filter pill track */}
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+              {QUICK_FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setQuickFilter(f.key)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    quickFilter === f.key
+                      ? "bg-[#1a0a0b] text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <Btn onClick={() => { setEditVehicle(null); setModalOpen(true); }}>
+              <Plus className="w-4 h-4" /> Add Vehicle
+            </Btn>
+          </div>
         </div>
       </div>
 
-      <VehicleKpiCards stats={stats} loading={loading} />
-      <VehicleCharts vehicles={vehicles} />
-      <VehicleTable
-        vehicles={vehicles}
-        loading={loading}
-        quickFilter={quickFilter === "all" ? "" : quickFilter}
-        onEdit={(v) => { setEditVehicle(v); setModalOpen(true); }}
-        onDelete={setDeleteTarget}
-      />
+      <div className="p-6 space-y-6">
+        <VehicleKpiCards stats={stats} loading={loading} />
+        <VehicleCharts vehicles={vehicles} />
+        <VehicleTable
+          vehicles={vehicles}
+          loading={loading}
+          quickFilter={quickFilter === "all" ? "" : quickFilter}
+          onEdit={(v) => { setEditVehicle(v); setModalOpen(true); }}
+          onDelete={setDeleteTarget}
+        />
+      </div>
 
       <VehicleModal
         open={modalOpen}

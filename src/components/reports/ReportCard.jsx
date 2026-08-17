@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Users, DollarSign, BookOpen, ClipboardCheck, Eye,
-  Calendar, User, ChevronRight, Car, Hash,
+  Calendar, User, ChevronRight,
 } from "lucide-react";
 import { fmt, fmtDate } from "../../utils/students.utils";
-import { reportsAPI } from "../../api/reports.api";
 
 const KPI_CONFIG = [
-  { key: "payment_total",                label: "Revenue",    icon: DollarSign,    color: "text-blue-700",   bg: "bg-blue-50",   border: "border-blue-100",  fmt: (v) => fmt(v) },
-  { key: "student_registrations",        label: "Students",   icon: Users,         color: "text-blue-600",   bg: "bg-blue-50",   border: "border-blue-100",  fmt: (v) => v },
-  { key: "student_course_registrations", label: "Enrollments",icon: BookOpen,      color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100",fmt: (v) => v },
+  { key: "payment_total",                label: "Revenue",    icon: DollarSign,    color: "text-gray-700",   bg: "bg-gray-50",   border: "border-gray-100",  fmt: (v) => fmt(v) },
+  { key: "student_registrations",        label: "Students",   icon: Users,         color: "text-gray-700",   bg: "bg-gray-50",   border: "border-gray-100",  fmt: (v) => v },
+  { key: "student_course_registrations", label: "Enrollments",icon: BookOpen,      color: "text-gray-700",   bg: "bg-gray-50",   border: "border-gray-100",  fmt: (v) => v },
   { key: "exam_bookings_count",          label: "Exams",      icon: ClipboardCheck,color: "text-red-600",    bg: "bg-red-50",    border: "border-red-100",   fmt: (v) => v },
 ];
 
@@ -19,25 +18,23 @@ export function ReportCard({ report, onClick }) {
     <div
       onClick={onClick}
       className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm cursor-pointer overflow-hidden
-        hover:shadow-xl hover:-translate-y-1 hover:border-blue-100 transition-all duration-200"
+        hover:shadow-xl hover:-translate-y-1 hover:border-gray-200 transition-all duration-200"
     >
-      <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500
-        opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
       <div className="p-5">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-gray-900 text-base truncate group-hover:text-blue-700 transition-colors">
+            <p className="font-bold text-gray-900 text-base truncate transition-colors">
               {report.branch_name}
             </p>
             <div className="flex items-center gap-1.5 mt-1">
               <Calendar className="w-3 h-3 text-gray-400 shrink-0" />
               <p className="text-xs text-gray-500 truncate">{period}</p>
-              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-blue-50 text-blue-600 border border-blue-100 shrink-0">
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-gray-100 text-gray-600 border border-gray-200 shrink-0">
                 Daily
               </span>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
         </div>
 
         <div className="grid grid-cols-4 gap-1.5 mb-4">
@@ -73,7 +70,7 @@ function DetailMetricCard({ label, value, accent, drillKey, textColor, onDrilldo
       {drillKey && (
         <button
           onClick={() => onDrilldown(drillKey)}
-          className="mt-2.5 flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+          className="mt-2.5 flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors"
         >
           <Eye className="w-3 h-3" /> View details
         </button>
@@ -82,117 +79,19 @@ function DetailMetricCard({ label, value, accent, drillKey, textColor, onDrilldo
   );
 }
 
-// ── Trip Summary Section ──────────────────────────────────────────────────────
-
-function TripSummary({ reportId }) {
-  const [trips, setTrips]     = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!reportId) return;
-    setLoading(true);
-    reportsAPI.tripEntries(reportId)
-      .then((res) => setTrips(Array.isArray(res) ? res : []))
-      .catch(() => setTrips([]))
-      .finally(() => setLoading(false));
-  }, [reportId]);
-
-  const totalStudents = trips.reduce((s, t) => s + (t.number_of_students || 0), 0);
-  const totalLessons  = trips.reduce((s, t) => s + (t.number_of_lessons  || 0), 0);
-
-  // Aggregate per vehicle
-  const byVehicle = trips.reduce((acc, t) => {
-    const key  = t.vehicle_registration ?? t.vehicle ?? "Unknown";
-    const name = t.vehicle_name ?? "";
-    if (!acc[key]) acc[key] = { reg: key, name, students: 0, lessons: 0 };
-    acc[key].students += (t.number_of_students || 0);
-    acc[key].lessons  += (t.number_of_lessons  || 0);
-    return acc;
-  }, {});
-  const vehicleRows = Object.values(byVehicle).sort((a, b) => b.lessons - a.lessons);
-
-  return (
-    <div className="rounded-2xl border border-gray-100 overflow-hidden">
-      {/* Header strip with totals */}
-      <div className="bg-blue-50 border-b border-blue-100 px-4 py-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-blue-100">
-            <Car className="w-3.5 h-3.5 text-blue-700" />
-          </div>
-          <p className="text-xs font-bold text-blue-800 uppercase tracking-wide">Practical trips</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-[10px] text-blue-500 font-semibold uppercase tracking-wide">Students</p>
-            <p className="text-base font-black text-blue-900">{loading ? "—" : totalStudents}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] text-blue-500 font-semibold uppercase tracking-wide">Lessons</p>
-            <p className="text-base font-black text-blue-900">{loading ? "—" : totalLessons}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Per-vehicle breakdown */}
-      {loading ? (
-        <div className="p-4 space-y-2">
-          {[...Array(3)].map((_, i) => <div key={i} className="h-8 bg-gray-50 rounded-lg animate-pulse" />)}
-        </div>
-      ) : vehicleRows.length === 0 ? (
-        <div className="px-4 py-5 text-center text-gray-400 text-xs">No trips recorded for this report</div>
-      ) : (
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-gray-50 bg-gray-50">
-              <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-gray-400">Vehicle</th>
-              <th className="px-4 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                <span className="flex items-center justify-center gap-1">
-                  <Hash className="w-3 h-3" /> Lessons
-                </span>
-              </th>
-              <th className="px-4 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                <span className="flex items-center justify-center gap-1">
-                  <Users className="w-3 h-3" /> Students
-                </span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {vehicleRows.map((row, i) => (
-              <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-2.5">
-                  <p className="font-bold text-gray-800 font-mono">{row.reg}</p>
-                  {row.name && <p className="text-gray-400 text-[10px]">{row.name}</p>}
-                </td>
-                <td className="px-4 py-2.5 text-center">
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-50 border border-blue-100 font-bold text-blue-700">
-                    {row.lessons}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5 text-center font-semibold text-gray-700">{row.students}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-}
-
 // ── Detail Panel ──────────────────────────────────────────────────────────────
 
 const AUTO_METRICS = [
-  { label: "Student registrations",  key: "student_registrations",        accent: "from-blue-500 to-blue-600",    drillKey: "student_registrations",        textColor: "text-blue-700"   },
-  { label: "Course enrollments",     key: "student_course_registrations",  accent: "from-blue-500 to-blue-600",drillKey: "student_course_registrations", textColor: "text-blue-700" },
-  { label: "Payments",               key: "payment_count",                 accent: "from-green-500 to-green-600",  drillKey: "payments",                     textColor: "text-green-700"  },
-  { label: "Revenue",                key: "payment_total",                 accent: "from-blue-500 to-blue-600",    drillKey: null,                           textColor: "text-blue-700",  isCurrency: true },
+  { label: "Student registrations",  key: "student_registrations",        accent: "from-gray-500 to-gray-600",    drillKey: "student_registrations",        textColor: "text-gray-800"   },
+  { label: "Course enrollments",     key: "student_course_registrations",  accent: "from-gray-500 to-gray-600",   drillKey: "student_course_registrations", textColor: "text-gray-800" },
+  { label: "Payments",               key: "payment_count",                 accent: "from-emerald-500 to-emerald-600",  drillKey: "payments",                     textColor: "text-emerald-700"  },
+  { label: "Revenue",                key: "payment_total",                 accent: "from-gray-500 to-gray-600",    drillKey: null,                           textColor: "text-gray-800",  isCurrency: true },
   { label: "Exam bookings",          key: "exam_bookings_count",           accent: "from-red-500 to-red-600",      drillKey: "exam_bookings",                textColor: "text-red-700"    },
 ];
 
 // Manual fields that still exist on the Report model
 const MANUAL_METRICS = [
-  { label: "Inquiries",  key: "inquiries"  },
-  { label: "Attendance", key: "attendance" },
+  { label: "Inquiries", key: "inquiries" },
 ];
 
 export function ReportDetailPanel({ report, onDrilldown }) {
@@ -202,20 +101,20 @@ export function ReportDetailPanel({ report, onDrilldown }) {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-blue-50 rounded-2xl border border-blue-100 p-4">
+      <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-xl font-bold text-gray-900">{report.branch_name}</h3>
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
               <span className="flex items-center gap-1 text-sm text-gray-600">
-                <Calendar className="w-3.5 h-3.5 text-blue-500" /> {fmtDate(report.report_date)}
+                <Calendar className="w-3.5 h-3.5 text-gray-500" /> {fmtDate(report.report_date)}
               </span>
               <span className="flex items-center gap-1 text-sm text-gray-600">
-                <User className="w-3.5 h-3.5 text-blue-500" /> {report.created_by_name}
+                <User className="w-3.5 h-3.5 text-gray-500" /> {report.created_by_name}
               </span>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-full text-xs font-semibold border bg-blue-50 text-blue-700 border-blue-200">
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold border bg-gray-100 text-gray-600 border-gray-200">
             Daily report
           </span>
         </div>
@@ -241,11 +140,11 @@ export function ReportDetailPanel({ report, onDrilldown }) {
 
       {/* Course breakdown */}
       {report.course_breakdown && Object.keys(report.course_breakdown).length > 0 && (
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-          <p className="text-xs font-semibold text-blue-400 uppercase tracking-widest mb-2">Course breakdown</p>
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Course breakdown</p>
           <div className="flex flex-wrap gap-2">
             {Object.entries(report.course_breakdown).map(([course, count]) => (
-              <span key={course} className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white text-blue-700 border border-blue-200">
+              <span key={course} className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white text-gray-700 border border-gray-200">
                 {course}: {count}
               </span>
             ))}
@@ -253,10 +152,15 @@ export function ReportDetailPanel({ report, onDrilldown }) {
         </div>
       )}
 
-      {/* Practical trips — replaces the old manual/auto lesson section */}
-      <TripSummary reportId={report.id} />
+      {/* Notes */}
+      {report.notes && (
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Notes</p>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap">{report.notes}</p>
+        </div>
+      )}
 
-      {/* Manual inputs — attendance + inquiries only */}
+      {/* Manual inputs — inquiries only */}
       <div className="border border-gray-100 rounded-2xl overflow-hidden">
         <button
           onClick={() => setManualOpen((p) => !p)}

@@ -13,7 +13,7 @@ const getMenuItems = (role) => [
   { path: "/dashboard/payments",    label: "Payments",  icon: CreditCard },
   { path: "/dashboard/exams",       label: "Exams",     icon: FileText },
   { path: "/dashboard/broadcast",   label: "Broadcast", icon: MessageSquare, adminOnly: true },
-  { path: "/dashboard/expenses",    label: "Performance", icon: TrendingUp,  adminOnly: true },
+  { path: "/dashboard/expenses",    label: "Performance", icon: TrendingUp },
   { path: "/dashboard/targets",     label: "Targets",     icon: Crosshair },
   { path: "/dashboard/instructors", label: "Instructors", icon: GraduationCap },
   { path: "/dashboard/reports",     label: "Reports",   icon: BarChart3 },

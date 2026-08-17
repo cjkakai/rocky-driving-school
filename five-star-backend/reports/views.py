@@ -1,35 +1,13 @@
 """
-Complete reports/views.py
+reports/views.py
 
-Key changes from the old version:
-1. reports_list_create POST now saves trip_entries as TripEntry child records
-2. New report_trips endpoint: GET /api/reports/<pk>/trips/
-3. analytics_kpi_live reads practical_trips from TripEntry
-4. export_reports_excel includes a Vehicle Trips sheet
-5. PDL removed from all analytics
-6. Old practical_manual_lessons / practical_automatic_lessons fields
-   are NO LONGER written on Report creation (clean model going forward)
+Report is now a lightweight daily sign-off: branch, created_by, report_date,
+inquiries (the one genuinely manual input), and an optional note. Everything
+else — registrations, payments, enrollments, exam bookings — is computed
+live from the source models on every read, never frozen at submission time.
 
-TripEntry model (add to reports/models.py):
---------------------------------------------
-class TripEntry(models.Model):
-    report  = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="trip_entries")
-    vehicle = models.ForeignKey("vehicles.Vehicle", on_delete=models.SET_NULL, null=True, blank=True)
-    number_of_students = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["created_at"]
-
-Add to urls.py:
----------------
-    path("<int:pk>/trips/",                    report_trips,                      name="report-trips"),
-    path("analytics/kpi-summary/",             analytics_kpi_live,                name="reports-kpi-live"),
-    path("analytics/payment-type-breakdown/",  analytics_payment_types,           name="reports-payment-types"),
-    path("analytics/export-summary/",          analytics_export_summary,          name="reports-export-summary"),
-    path("analytics/branch-comparison/",       analytics_branch_comparison,       name="reports-branch-comparison"),
-    path("analytics/time-series/",             analytics_time_series,             name="reports-time-series"),
-    path("export/excel/",                      export_reports_excel,              name="reports-export-excel"),
+Vehicle/trip data has moved to Lesson (academics app); Report no longer
+tracks it. TripEntry is legacy-only and is not written to or read from here.
 """
 
 from django.db.models import Sum, Count, Q
@@ -50,9 +28,8 @@ from finance.models import PaymentTransaction
 from bookings.models import ExamBooking
 from academics.models import StudentCourse, Course
 from branches.models import Branch
-from vehicles.models import Vehicle
 
-from .models import Report, TripEntry
+from .models import Report
 from .serializers import ReportSerializer
 
 
@@ -175,34 +152,13 @@ def reports_list_create(request):
     if Report.objects.filter(branch=branch, report_date=report_date).exists():
         return Response({"detail": f"A report for {report_date} already exists."}, status=400)
 
-    # Create Report (manual fields only)
     report = Report.objects.create(
         branch=branch,
         created_by=user,
         report_date=report_date,
         inquiries=int(request.data.get("inquiries", 0)),
-        attendance=int(request.data.get("attendance", 0)),
+        notes=request.data.get("notes", "").strip(),
     )
-
-    # ── Persist trip entries ──────────────────────────────────────────────────
-    # trip_entries: [{ vehicle: <id>, number_of_students: <int> }, ...]
-    trip_entries = request.data.get("trip_entries", [])
-    for entry in trip_entries:
-        vehicle_id = entry.get("vehicle")
-        students   = int(entry.get("number_of_students", 0))
-        if not vehicle_id:
-            continue
-        try:
-            vehicle = Vehicle.objects.get(pk=int(vehicle_id))
-        except (Vehicle.DoesNotExist, ValueError):
-            continue
-        TripEntry.objects.create(
-            report=report,
-            vehicle=vehicle,
-            number_of_students=students,
-            number_of_lessons=int(entry.get("number_of_lessons", 0)),
-        )
-
     return Response(ReportSerializer(report).data, status=201)
 
 
@@ -269,37 +225,6 @@ def report_drilldown(request, pk):
             student__branch_id=branch_id, created_at__range=[start, end]
         ).values("id", "student__full_name", "student__admission_number", "exam__exam_name", "exam__exam_date", "status", "created_at")))
     return Response({"detail": "Unknown metric."}, status=400)
-
-
-# ── NEW: Trip entries for a report ───────────────────────────────────────────
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def report_trips(request, pk):
-    """
-    Returns all trip entries for a specific report.
-    Used by ReportDetailPanel to show per-vehicle breakdown.
-
-    Returns: [{ id, vehicle_registration, vehicle_name, number_of_students }]
-    """
-    try:
-        report = Report.objects.select_related("branch").get(pk=pk)
-    except Report.DoesNotExist:
-        return Response({"detail": "Not found."}, status=404)
-    if request.user.role == "branch_user" and report.branch != request.user.branch:
-        return Response({"detail": "Forbidden."}, status=403)
-
-    trips = TripEntry.objects.filter(report=report).select_related("vehicle").order_by("created_at")
-    return Response([
-        {
-            "id":                   t.id,
-            "vehicle_registration": t.vehicle.registration_number if t.vehicle else None,
-            "vehicle_name":         t.vehicle.vehicle_name if t.vehicle else None,
-            "number_of_students":   t.number_of_students,
-            "number_of_lessons":    t.number_of_lessons,
-        }
-        for t in trips
-    ])
 
 
 # ── Daily summary (live metrics merged into report data) ─────────────────────
@@ -370,24 +295,15 @@ def analytics_kpi_live(request):
     sc_qs   = _bf(_apply_date_filters_sc(StudentCourse.objects.all(), params), "student__branch_id", branch_id)
     exam_qs = _bf(_apply_dt_filters(ExamBooking.objects.all(), params), "student__branch_id", branch_id)
     rpt_qs  = _bf(_apply_date_filters_report(Report.objects.all(), params), "branch_id", branch_id)
-    rpt_agg = rpt_qs.aggregate(att=Sum("attendance"), inq=Sum("inquiries"), cnt=Count("id"))
-
-    # Trip count from TripEntry (filtered by report__report_date and branch)
-    trip_qs = TripEntry.objects.filter(
-        **({} if not params.get("date_from") else {"report__report_date__gte": params["date_from"]}),
-        **({} if not params.get("date_to")   else {"report__report_date__lte": params["date_to"]}),
-        **({} if not branch_id               else {"report__branch_id": branch_id}),
-    )
+    rpt_agg = rpt_qs.aggregate(inq=Sum("inquiries"), cnt=Count("id"))
 
     return Response({
-        "revenue":          revenue,
-        "registrations":    stu_qs.count(),
-        "enrollments":      sc_qs.count(),
-        "exam_bookings":    exam_qs.count(),
-        "attendance":       rpt_agg["att"] or 0,
-        "inquiries":        rpt_agg["inq"] or 0,
-        "practical_lessons": trip_qs.aggregate(t=Sum("number_of_lessons"))["t"] or 0,
-        "report_count":     rpt_agg["cnt"] or 0,
+        "revenue":       revenue,
+        "registrations": stu_qs.count(),
+        "enrollments":   sc_qs.count(),
+        "exam_bookings": exam_qs.count(),
+        "inquiries":     rpt_agg["inq"] or 0,
+        "report_count":  rpt_agg["cnt"] or 0,
     })
 
 
@@ -440,7 +356,7 @@ def analytics_branch_comparison(request):
         rows = qs.values("student__branch__name").annotate(value=Count("id")).order_by("-value")
         return Response([{"branch": r["student__branch__name"], "value": r["value"]} for r in rows])
 
-    if metric in ("attendance", "inquiries"):
+    if metric == "inquiries":
         qs = _apply_date_filters_report(Report.objects.all(), params)
         if branch_ids:
             qs = qs.filter(branch_id__in=branch_ids)
@@ -469,7 +385,7 @@ def analytics_time_series(request):
         branch_id = user.branch_id
 
     LIVE    = {"payment_total", "student_registrations", "student_course_registrations", "exam_bookings_count"}
-    MANUAL  = {"attendance", "inquiries"}
+    MANUAL  = {"inquiries"}
     if metric not in LIVE | MANUAL:
         return Response({"detail": "Invalid metric."}, status=400)
 
@@ -516,7 +432,7 @@ def analytics_time_series(request):
         rows = qs.annotate(period=TF("created_at")).values("period").annotate(value=Count("id")).order_by("period")
         return Response({"data": [{"period": period_str(r["period"]), "value": r["value"]} for r in rows], "granularity": gran})
 
-    # attendance / inquiries — from Report model
+    # inquiries — from Report model
     qs = Report.objects.all()
     if user.role == "branch_user": qs = qs.filter(branch=user.branch)
     elif branch_id:                qs = qs.filter(branch_id=branch_id)
@@ -541,18 +457,11 @@ def analytics_export_summary(request):
         sc_qs   = _bf(_apply_date_filters_sc(StudentCourse.objects.all(), params), "student__branch_id", branch_id)
         exam_qs = _bf(_apply_dt_filters(ExamBooking.objects.all(), params), "student__branch_id", branch_id)
         rpt_qs  = _bf(_apply_date_filters_report(Report.objects.all(), params), "branch_id", branch_id)
-        rpt_agg = rpt_qs.aggregate(att=Sum("attendance"), inq=Sum("inquiries"), cnt=Count("id"))
-        trip_qs = TripEntry.objects.filter(
-            **({} if not params.get("date_from") else {"report__report_date__gte": params["date_from"]}),
-            **({} if not params.get("date_to")   else {"report__report_date__lte": params["date_to"]}),
-            **({} if not branch_id               else {"report__branch_id": branch_id}),
-        )
+        rpt_agg = rpt_qs.aggregate(inq=Sum("inquiries"), cnt=Count("id"))
         result["operational"] = {
             "registrations":    stu_qs.count(),
             "enrollments":      sc_qs.count(),
             "exam_bookings":    exam_qs.count(),
-            "practical_lessons": trip_qs.aggregate(t=Sum("number_of_lessons"))["t"] or 0,
-            "attendance":       rpt_agg["att"] or 0,
             "inquiries":        rpt_agg["inq"] or 0,
             "report_count":     rpt_agg["cnt"] or 0,
         }
@@ -572,9 +481,9 @@ def analytics_export_summary(request):
             rev  = float(_apply_dt_filters(PaymentTransaction.objects.filter(status="completed", student__branch_id=b.id, student__isnull=False), params).aggregate(t=Sum("amount"))["t"] or 0)
             regs = _apply_dt_filters(Student.objects.filter(branch_id=b.id), params).count()
             enrl = _apply_date_filters_sc(StudentCourse.objects.filter(student__branch_id=b.id), params).count()
-            agg  = _apply_date_filters_report(Report.objects.filter(branch_id=b.id), params).aggregate(att=Sum("attendance"), inq=Sum("inquiries"))
+            agg  = _apply_date_filters_report(Report.objects.filter(branch_id=b.id), params).aggregate(inq=Sum("inquiries"))
             exms = _apply_dt_filters(ExamBooking.objects.filter(student__branch_id=b.id), params).count()
-            rows.append({"branch": b.name, "revenue": rev, "registrations": regs, "enrollments": enrl, "attendance": agg["att"] or 0, "inquiries": agg["inq"] or 0, "exam_bookings": exms})
+            rows.append({"branch": b.name, "revenue": rev, "registrations": regs, "enrollments": enrl, "inquiries": agg["inq"] or 0, "exam_bookings": exms})
         rows.sort(key=lambda x: x["revenue"], reverse=True)
         result["branch_perf"] = rows
 
@@ -593,7 +502,7 @@ def analytics_export_summary(request):
 def export_reports_excel(request):
     params    = request.query_params
     branch_id = request.user.branch_id if request.user.role == "branch_user" else params.get("branch")
-    sections  = set(params.getlist("sections")) or {"operational", "revenue", "branch_perf", "vehicle_trips"}
+    sections  = set(params.getlist("sections")) or {"operational", "revenue", "branch_perf"}
 
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
@@ -617,18 +526,11 @@ def export_reports_excel(request):
         sc_qs   = _bf(_apply_date_filters_sc(StudentCourse.objects.all(), params), "student__branch_id", branch_id)
         exam_qs = _bf(_apply_dt_filters(ExamBooking.objects.all(), params), "student__branch_id", branch_id)
         rpt_qs  = _bf(_apply_date_filters_report(Report.objects.all(), params), "branch_id", branch_id)
-        rpt_agg = rpt_qs.aggregate(att=Sum("attendance"), inq=Sum("inquiries"), cnt=Count("id"))
-        trip_qs = TripEntry.objects.filter(
-            **({} if not params.get("date_from") else {"report__report_date__gte": params["date_from"]}),
-            **({} if not params.get("date_to")   else {"report__report_date__lte": params["date_to"]}),
-            **({} if not branch_id               else {"report__branch_id": branch_id}),
-        )
+        rpt_agg = rpt_qs.aggregate(inq=Sum("inquiries"), cnt=Count("id"))
         make_sheet("Operational", ["Metric", "Value"], [
             ["Registrations",       stu_qs.count()],
             ["Enrollments",         sc_qs.count()],
             ["Exam Bookings",       exam_qs.count()],
-            ["Practical Lessons",   trip_qs.aggregate(t=Sum("number_of_lessons"))["t"] or 0],
-            ["Attendance",          rpt_agg["att"] or 0],
             ["Inquiries",           rpt_agg["inq"] or 0],
             ["Reports Submitted",   rpt_agg["cnt"] or 0],
         ])
@@ -647,48 +549,12 @@ def export_reports_excel(request):
             rev  = float(_apply_dt_filters(PaymentTransaction.objects.filter(status="completed", student__branch_id=b.id, student__isnull=False), params).aggregate(t=Sum("amount"))["t"] or 0)
             regs = _apply_dt_filters(Student.objects.filter(branch_id=b.id), params).count()
             enrl = _apply_date_filters_sc(StudentCourse.objects.filter(student__branch_id=b.id), params).count()
-            agg  = _apply_date_filters_report(Report.objects.filter(branch_id=b.id), params).aggregate(att=Sum("attendance"), inq=Sum("inquiries"))
+            agg  = _apply_date_filters_report(Report.objects.filter(branch_id=b.id), params).aggregate(inq=Sum("inquiries"))
             exms = _apply_dt_filters(ExamBooking.objects.filter(student__branch_id=b.id), params).count()
-            rows.append([b.name, rev, regs, enrl, agg["att"] or 0, agg["inq"] or 0, exms])
+            rows.append([b.name, rev, regs, enrl, agg["inq"] or 0, exms])
         rows.sort(key=lambda x: x[1], reverse=True)
         make_sheet("Branch Performance",
-            ["Branch", "Revenue (Ksh)", "Registrations", "Enrollments", "Attendance", "Inquiries", "Exam Bookings"], rows)
-
-    if "vehicle_trips" in sections:
-        # Per-vehicle, per-date trip summary — most useful for fleet management
-        trip_qs = TripEntry.objects.filter(
-            **({} if not params.get("date_from") else {"report__report_date__gte": params["date_from"]}),
-            **({} if not params.get("date_to")   else {"report__report_date__lte": params["date_to"]}),
-            **({} if not branch_id               else {"report__branch_id": branch_id}),
-        ).select_related("vehicle", "report__branch").order_by("report__report_date", "vehicle__registration_number")
-
-        trip_rows = [
-            [
-                t.report.report_date.strftime("%Y-%m-%d"),
-                t.report.branch.name if t.report.branch else "—",
-                t.vehicle.registration_number if t.vehicle else "—",
-                t.vehicle.vehicle_name if t.vehicle else "—",
-                t.number_of_students,
-                t.number_of_lessons,
-            ]
-            for t in trip_qs
-        ]
-        veh_summary = {}
-        for row in trip_rows:
-            reg = row[2]
-            if reg not in veh_summary:
-                veh_summary[reg] = {"name": row[3], "students": 0, "lessons": 0}
-            veh_summary[reg]["students"] += row[4]
-            veh_summary[reg]["lessons"]  += row[5]
-
-        ws = make_sheet("Vehicle Trips",
-            ["Date", "Branch", "Registration", "Vehicle Name", "Students Attended", "Practical Lessons"],
-            trip_rows)
-        ws.append([])
-        ws.append(["VEHICLE SUMMARY", "", "", "", "", ""])
-        ws.append(["Registration", "Vehicle Name", "Total Students", "Total Lessons", "", ""])
-        for reg, v in sorted(veh_summary.items(), key=lambda x: -x[1]["lessons"]):
-            ws.append([reg, v["name"], v["students"], v["lessons"], "", ""])
+            ["Branch", "Revenue (Ksh)", "Registrations", "Enrollments", "Inquiries", "Exam Bookings"], rows)
 
     buf = io.BytesIO()
     wb.save(buf)

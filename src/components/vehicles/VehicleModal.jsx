@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { Modal, Btn, Label, Input } from "../../ui";
 import { vehiclesAPI } from "../../api/vehicles.api";
 
-const VEHICLE_TYPES = ["Sedan","SUV","Hatchback","Pickup","Van","Minibus","Truck","Motorcycle"];
+const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Pickup", "Van", "Minibus", "Truck", "Motorcycle"];
 
 export function VehicleModal({ open, onClose, onSaved, vehicle }) {
   const isEdit = !!vehicle;
@@ -38,7 +38,7 @@ export function VehicleModal({ open, onClose, onSaved, vehicle }) {
     onClose();
   };
 
-  const sel = "w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors";
+  const sel = "w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a0a0b]/10 focus:border-gray-400 transition-colors";
   const err = "text-xs text-red-500 mt-1";
 
   return (

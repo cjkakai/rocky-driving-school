@@ -10,7 +10,6 @@ urlpatterns = [
     path("reports/branches/", views.branches_list_for_reports),
     path("reports/<int:pk>/", views.report_detail),
     path("reports/<int:pk>/drilldown/", views.report_drilldown),
-    path("reports/<int:pk>/trips/", views.report_trips),
 
     # Analytics
     path("reports/analytics/kpi-summary/", views.analytics_kpi_live),

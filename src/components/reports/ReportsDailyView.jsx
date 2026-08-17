@@ -40,8 +40,6 @@ function KpiChip({ icon: Icon, label, value, tone = "slate" }) {
     slate:   "bg-slate-50 text-slate-700 border-slate-200 ring-slate-100",
     emerald: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100",
     amber:   "bg-amber-50 text-amber-700 border-amber-200 ring-amber-100",
-    sky:     "bg-sky-50 text-sky-700 border-sky-200 ring-sky-100",
-    blue:    "bg-blue-50 text-blue-700 border-blue-200 ring-blue-100",
     rose:    "bg-rose-50 text-rose-700 border-rose-200 ring-rose-100",
   };
   return (
@@ -54,15 +52,14 @@ function KpiChip({ icon: Icon, label, value, tone = "slate" }) {
 }
 
 /* ───────────────── Stat Card ───────────────── */
-function StatCard({ icon: Icon, label, value, sub, gradient, iconBg }) {
+function StatCard({ icon: Icon, label, value, sub, bg, iconBg }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-white/40 p-4 shadow-sm ${gradient}`}>
-      <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/30 blur-2xl" />
+    <div className={`relative overflow-hidden rounded-2xl border border-gray-100 p-4 shadow-sm ${bg}`}>
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-700/70">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
           <p className="mt-1 text-2xl font-bold text-slate-900 tabular-nums">{value}</p>
-          {sub && <p className="text-[11px] mt-0.5 text-slate-700/70">{sub}</p>}
+          {sub && <p className="text-[11px] mt-0.5 text-slate-500">{sub}</p>}
         </div>
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm ${iconBg}`}>
           <Icon className="w-4.5 h-4.5 text-white" />
@@ -95,14 +92,12 @@ function Overview({ branches, date }) {
   ];
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-white to-slate-50/50 shadow-sm">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100/40 via-blue-100/30 to-transparent rounded-full blur-3xl pointer-events-none" />
-
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="relative p-6">
         <div className="flex flex-col lg:flex-row justify-between gap-6 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
+              <div className="w-8 h-8 rounded-lg bg-[#1a0a0b] flex items-center justify-center shadow-sm">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <h2 className="text-xl font-bold text-slate-900">Daily Reports Overview</h2>
@@ -114,7 +109,7 @@ function Overview({ branches, date }) {
               <KpiChip icon={Building2} label="Branches" value={total} tone="slate" />
               <KpiChip icon={CheckCircle2} label="Submitted" value={submitted} tone="emerald" />
               <KpiChip icon={AlertCircle} label="Missing" value={missing} tone="amber" />
-              <KpiChip icon={TrendingUp} label="Rate" value={`${rate}%`} tone={rate >= 80 ? "emerald" : rate >= 50 ? "sky" : "rose"} />
+              <KpiChip icon={TrendingUp} label="Rate" value={`${rate}%`} tone={rate >= 80 ? "emerald" : rate >= 50 ? "slate" : "rose"} />
             </div>
           </div>
 
@@ -155,7 +150,7 @@ function Overview({ branches, date }) {
           </div>
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 rounded-full transition-all duration-700 ease-out"
+              className="h-full bg-[#1a0a0b] rounded-full transition-all duration-700 ease-out"
               style={{ width: `${rate}%` }}
             />
           </div>
@@ -166,26 +161,26 @@ function Overview({ branches, date }) {
           <StatCard
             icon={DollarSign} label="Total Revenue" value={fmt(totals.revenue)}
             sub="across submitted branches"
-            gradient="bg-gradient-to-br from-blue-50 to-blue-50"
-            iconBg="bg-gradient-to-br from-blue-600 to-blue-600"
+            bg="bg-gray-50"
+            iconBg="bg-gray-700"
           />
           <StatCard
             icon={Users} label="New Students" value={totals.students}
             sub="registrations today"
-            gradient="bg-gradient-to-br from-blue-50 to-blue-50"
-            iconBg="bg-gradient-to-br from-blue-500 to-blue-600"
+            bg="bg-gray-50"
+            iconBg="bg-gray-700"
           />
           <StatCard
             icon={BookOpen} label="Course Enrollments" value={totals.enroll}
             sub="across branches"
-            gradient="bg-gradient-to-br from-blue-50 to-blue-50"
-            iconBg="bg-gradient-to-br from-blue-500 to-blue-600"
+            bg="bg-emerald-50"
+            iconBg="bg-emerald-600"
           />
           <StatCard
             icon={ClipboardCheck} label="Exam Bookings" value={totals.exams}
             sub="scheduled today"
-            gradient="bg-gradient-to-br from-amber-50 to-orange-50"
-            iconBg="bg-gradient-to-br from-amber-500 to-orange-600"
+            bg="bg-amber-50"
+            iconBg="bg-amber-600"
           />
         </div>
       </div>
@@ -196,11 +191,10 @@ function Overview({ branches, date }) {
 /* ───────────────── KPI Strip ───────────────── */
 function KpiStrip({ report }) {
   const items = [
-    { icon: DollarSign, label: "Revenue", value: fmt(report.payment_total), tone: "sky" },
-    { icon: Users, label: "Students", value: report.student_registrations, tone: "sky" },
-    { icon: BookOpen, label: "Enroll", value: report.student_course_registrations, tone: "blue" },
+    { icon: DollarSign, label: "Revenue", value: fmt(report.payment_total), tone: "slate" },
+    { icon: Users, label: "Students", value: report.student_registrations, tone: "slate" },
+    { icon: BookOpen, label: "Enroll", value: report.student_course_registrations, tone: "emerald" },
     { icon: ClipboardCheck, label: "Exams", value: report.exam_bookings_count, tone: "amber" },
-    { icon: TrendingUp, label: "Attendance", value: report.attendance, tone: "blue" },
   ];
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -258,7 +252,7 @@ function BranchRow({ entry, onView, onSubmit, isToday }) {
           {submitted ? (
             <button
               onClick={() => onView(report)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 transition-colors"
             >
               <Eye className="w-3.5 h-3.5" /> View
               <ArrowUpRight className="w-3 h-3 opacity-70" />
@@ -292,8 +286,7 @@ function BranchUserDayView({ entry, onView, onSubmit, isToday }) {
 
   if (submitted) {
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/40 shadow-sm">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-200/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
         <div className="relative p-6">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-5">
             <div className="flex items-center gap-3">
@@ -312,22 +305,15 @@ function BranchUserDayView({ entry, onView, onSubmit, isToday }) {
             </Btn>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <StatCard icon={DollarSign} label="Revenue" value={fmt(report.payment_total)}
-              gradient="bg-gradient-to-br from-blue-50 to-blue-50"
-              iconBg="bg-gradient-to-br from-blue-600 to-blue-600" />
+              bg="bg-gray-50" iconBg="bg-gray-700" />
             <StatCard icon={Users} label="Students" value={report.student_registrations}
-              gradient="bg-gradient-to-br from-blue-50 to-blue-50"
-              iconBg="bg-gradient-to-br from-blue-500 to-blue-600" />
+              bg="bg-gray-50" iconBg="bg-gray-700" />
             <StatCard icon={BookOpen} label="Enrollments" value={report.student_course_registrations}
-              gradient="bg-gradient-to-br from-blue-50 to-blue-50"
-              iconBg="bg-gradient-to-br from-blue-500 to-blue-600" />
+              bg="bg-emerald-50" iconBg="bg-emerald-600" />
             <StatCard icon={ClipboardCheck} label="Exams" value={report.exam_bookings_count}
-              gradient="bg-gradient-to-br from-amber-50 to-orange-50"
-              iconBg="bg-gradient-to-br from-amber-500 to-orange-600" />
-            <StatCard icon={TrendingUp} label="Attendance" value={report.attendance}
-              gradient="bg-gradient-to-br from-rose-50 to-pink-50"
-              iconBg="bg-gradient-to-br from-rose-500 to-pink-600" />
+              bg="bg-amber-50" iconBg="bg-amber-600" />
           </div>
         </div>
       </div>
@@ -335,8 +321,7 @@ function BranchUserDayView({ entry, onView, onSubmit, isToday }) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-amber-200/60 bg-gradient-to-br from-white via-amber-50/40 to-orange-50/40 p-10 text-center shadow-sm">
-      <div className="absolute -top-10 -right-10 w-48 h-48 bg-amber-200/30 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative overflow-hidden rounded-2xl border border-amber-200 bg-white p-10 text-center shadow-sm">
       <div className="relative">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg mb-4">
           <AlertCircle className="w-8 h-8 text-white" />
@@ -423,11 +408,10 @@ export function ReportsDailyView({ onViewReport, onSubmitReport }) {
     <div className="space-y-5">
       {/* ── Header / Date control ───────────────── */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-transparent to-blue-50/50 pointer-events-none" />
         <div className="relative p-4 flex flex-col lg:flex-row lg:items-center gap-4 justify-between">
           {/* Date nav */}
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-[#1a0a0b] flex items-center justify-center shadow-sm">
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1">
@@ -469,7 +453,7 @@ export function ReportsDailyView({ onViewReport, onSubmitReport }) {
             {!isToday && (
               <button
                 onClick={() => setDate(todayStr())}
-                className="px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-100 transition-colors"
+                className="px-3 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-200 transition-colors"
               >
                 Jump to Today
               </button>
@@ -498,7 +482,7 @@ export function ReportsDailyView({ onViewReport, onSubmitReport }) {
               placeholder="Search branches..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all"
+              className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all"
             />
           </div>
           <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">

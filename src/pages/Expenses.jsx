@@ -3,6 +3,7 @@ import { Plus, SlidersHorizontal, X } from "lucide-react";
 import { Btn, Toast, useToast } from "../ui";
 import { DeleteConfirmModal } from "../ui/DeleteConfirmModal";
 import { expensesAPI } from "../api/expenses.api";
+import { useAuth } from "../context/AuthContext";
 import { ProfitabilityKpiCards } from "../components/expenses/ProfitabilityKpiCards";
 import { BranchProfitabilityChart } from "../components/expenses/BranchProfitability";
 import { ProfitabilityDonut } from "../components/expenses/Profitabilitydonut";
@@ -28,6 +29,9 @@ const QUICK = [
 ];
 
 export default function Expenses() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "super_admin";
+
   const [branches, setBranches] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loadingExpenses, setLoadingExpenses] = useState(true);
@@ -42,6 +46,7 @@ export default function Expenses() {
   const applyQuick = (q) => { setFilters({ dateFrom: q.dateFrom, dateTo: q.dateTo }); setActiveQuick(q.label); };
   const clearFilters = () => { setFilters({ dateFrom: "", dateTo: "" }); setActiveQuick(null); };
 
+  // Branch scoping is enforced server-side; just pass date filters
   const apiFilters = {
     ...(filters.dateFrom ? { date_from: filters.dateFrom } : {}),
     ...(filters.dateTo   ? { date_to:   filters.dateTo   } : {}),
@@ -56,8 +61,8 @@ export default function Expenses() {
   }, [JSON.stringify(apiFilters)]);
 
   useEffect(() => {
-    expensesAPI.branches().then(setBranches).catch(() => {});
-  }, []);
+    if (isAdmin) expensesAPI.branches().then(setBranches).catch(() => {});
+  }, [isAdmin]);
 
   useEffect(() => { loadExpenses(); }, [loadExpenses]);
 
@@ -81,19 +86,25 @@ export default function Expenses() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Branch Performance</h1>
-          <p className="text-gray-500 mt-1 text-sm">Revenue, expenses &amp; profitability dashboard</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isAdmin ? "Branch Performance" : "Expenses"}
+          </h1>
+          <p className="text-gray-500 mt-1 text-sm">
+            {isAdmin
+              ? "Revenue, expenses & profitability dashboard"
+              : `Expense records · ${user?.branch_name ?? "your branch"}`}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1 bg-red-50/60 rounded-xl p-1">
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
             {QUICK.map((q) => (
               <button
                 key={q.label}
                 onClick={() => applyQuick(q)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeQuick === q.label
-                    ? "bg-gradient-to-r from-[#c41820] to-[#ed1c24] text-white shadow-sm shadow-red-200"
-                    : "text-[#c41820]/70 hover:text-[#c41820]"
+                    ? "bg-[#1a0a0b] text-white shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {q.label}
@@ -106,10 +117,10 @@ export default function Expenses() {
         </div>
       </div>
 
-      {/* Date filter bar */}
-      <div className="bg-gradient-to-r from-red-50 via-white to-red-50 rounded-2xl border border-red-100 shadow-sm px-4 py-3">
+      {/* Filter bar — Targets style */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-3">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#c41820]/70 uppercase tracking-wide shrink-0">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">
             <SlidersHorizontal className="w-3.5 h-3.5" /> Date Range
           </div>
           <div className="flex items-center gap-1.5">
@@ -117,42 +128,48 @@ export default function Expenses() {
               type="date"
               value={filters.dateFrom}
               onChange={(e) => patchFilters({ dateFrom: e.target.value })}
-              className="px-3 py-1.5 border border-red-100 rounded-xl text-sm bg-red-50/40 focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-[#c41820] transition-all"
+              className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all"
             />
-            <span className="text-red-300 text-sm">→</span>
+            <span className="text-gray-300 text-sm">→</span>
             <input
               type="date"
               value={filters.dateTo}
               min={filters.dateFrom}
               onChange={(e) => patchFilters({ dateTo: e.target.value })}
-              className="px-3 py-1.5 border border-red-100 rounded-xl text-sm bg-red-50/40 focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-[#c41820] transition-all"
+              className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-all"
             />
           </div>
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium border border-red-200 transition-colors"
+              className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium border border-gray-200 transition-colors"
             >
               <X className="w-3.5 h-3.5" /> Clear
             </button>
           )}
-          <p className="ml-auto text-xs text-[#c41820]/50">Filters apply globally to all sections</p>
+          <p className="ml-auto text-xs text-gray-400">Filters apply globally to all sections</p>
         </div>
       </div>
 
       {/* KPI Cards */}
       <ProfitabilityKpiCards filters={apiFilters} />
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        <BranchProfitabilityChart branches={branches} globalFilters={filters} />
-        <ProfitabilityDonut globalFilters={filters} />
-      </div>
+      {/* Admin-only: multi-branch charts */}
+      {isAdmin && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <BranchProfitabilityChart branches={branches} globalFilters={filters} />
+          <ProfitabilityDonut globalFilters={filters} />
+        </div>
+      )}
 
-      {/* Trend chart */}
-      <ExpenseTimeSeries branches={branches} globalFilters={filters} />
+      {/* Trend — visible to all, scoped via apiFilters */}
+      <ExpenseTimeSeries
+        branches={isAdmin ? branches : []}
+        globalFilters={filters}
+        branchId={!isAdmin ? user?.branch_id : null}
+      />
 
-      {/* Expense transactions */}
+      {/* Expense transactions — visible to all */}
       <div>
         <div className="mb-3">
           <h2 className="text-lg font-bold text-gray-800">Expense Transactions</h2>
@@ -167,8 +184,8 @@ export default function Expenses() {
         />
       </div>
 
-      {/* P&L table */}
-      <ProfitabilityTable globalFilters={filters} branches={branches} />
+      {/* P&L table — all users, branch users see only their branch */}
+      <ProfitabilityTable globalFilters={filters} branches={branches} isAdmin={isAdmin} />
 
       <ExpenseModal
         open={modalOpen}
@@ -176,6 +193,7 @@ export default function Expenses() {
         onSaved={handleSaved}
         expense={editExpense}
         branches={branches}
+        currentUser={user}
       />
       <DeleteConfirmModal
         open={!!deleteTarget}

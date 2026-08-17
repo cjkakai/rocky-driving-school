@@ -1,8 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Sum
-from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
+from django.db.models import Count
 
 from .models import Vehicle
 from .serializers import VehicleSerializer
@@ -82,61 +81,38 @@ def vehicle_stats(request):
 @permission_classes([IsAuthenticated])
 def trip_analytics(request):
     """
-    Returns vehicle trip analytics aggregated from TripEntry records.
-
-    Used by VehicleCharts (Top Vehicles by Trips bar chart).
-
-    Query params:
-        date_from   — ISO date (filters on report__report_date)
-        date_to     — ISO date
-        branch      — branch pk (optional)
-
-    Returns:
-    {
-        "top_vehicles": [
-            {
-                "registration": "KDL 123A",
-                "name":         "Toyota Axio",
-                "total_trips":  14,
-                "total_students": 48
-            },
-            ...
-        ],
-        "total_trips":    42,
-        "total_students": 156
-    }
+    Returns vehicle usage analytics aggregated directly from Lesson records.
+    No dependency on report submission — updates the moment a lesson is added.
     """
+    from academics.models import Lesson
+    from django.db.models import Count
+
     params    = request.query_params
     user      = request.user
     branch_id = user.branch_id if user.role == "branch_user" else params.get("branch")
 
-    # TripEntry lives in the reports app
-    from reports.models import TripEntry
-    
-    qs = TripEntry.objects.select_related("vehicle", "report")
+    qs = Lesson.objects.filter(status="completed", vehicle__isnull=False)
 
     if params.get("date_from"):
-        qs = qs.filter(report__report_date__gte=params["date_from"])
+        qs = qs.filter(date__gte=params["date_from"])
     if params.get("date_to"):
-        qs = qs.filter(report__report_date__lte=params["date_to"])
+        qs = qs.filter(date__lte=params["date_to"])
     if branch_id:
-        qs = qs.filter(report__branch_id=branch_id)
+        qs = qs.filter(branch_id=branch_id)
 
-    # Top vehicles by trip count
     top_vehicles = (
         qs
-        .filter(vehicle__isnull=False)
         .values("vehicle__registration_number", "vehicle__vehicle_name")
         .annotate(
-            total_lessons=Sum("number_of_lessons"),
-            total_students=Sum("number_of_students"),
+            total_lessons=Count("id"),
+            total_students=Count("student", distinct=True),
         )
         .order_by("-total_lessons")
     )
 
     totals = qs.aggregate(
-        total_lessons=Sum("number_of_lessons"),
-        total_students=Sum("number_of_students"),
+        total_lessons=Count("id"),
+        total_students=Count("student", distinct=True),
     )
 
     return Response({
@@ -144,8 +120,8 @@ def trip_analytics(request):
             {
                 "registration":   r["vehicle__registration_number"],
                 "name":           r["vehicle__vehicle_name"],
-                "total_lessons":  r["total_lessons"]  or 0,
-                "total_students": r["total_students"] or 0,
+                "total_lessons":  r["total_lessons"],
+                "total_students": r["total_students"],
             }
             for r in top_vehicles
         ],

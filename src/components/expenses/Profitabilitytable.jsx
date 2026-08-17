@@ -44,7 +44,7 @@ function exportExcel(params) {
   expensesAPI.exportProfitability(params);
 }
 
-export function ProfitabilityTable({ globalFilters, branches }) {
+export function ProfitabilityTable({ globalFilters, branches, isAdmin = true }) {
   const [rows, setRows] = useState([]);
   const [generalExpense, setGeneralExpense] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -99,7 +99,7 @@ export function ProfitabilityTable({ globalFilters, branches }) {
   const SortTH = ({ col, children, right }) => (
     <th
       onClick={() => toggleSort(col)}
-      className={`px-4 py-3.5 text-[11px] font-bold uppercase tracking-[0.14em] text-blue-500 cursor-pointer select-none whitespace-nowrap ${right ? "text-right" : "text-left"}`}
+      className={`px-4 py-3.5 text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400 cursor-pointer select-none whitespace-nowrap ${right ? "text-right" : "text-left"}`}
     >
       <span className={`inline-flex items-center gap-1 ${right ? "justify-end w-full" : ""}`}>
         {children}
@@ -111,46 +111,50 @@ export function ProfitabilityTable({ globalFilters, branches }) {
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Toolbar */}
-      <div className="px-5 py-4 border-b border-blue-50 bg-gradient-to-r from-blue-50 via-white to-white flex flex-wrap items-center gap-3">
+      <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-xl">
-            <TrendingUp className="w-4 h-4 text-blue-600" />
+          <div className="p-2 bg-gray-100 rounded-xl">
+            <TrendingUp className="w-4 h-4 text-gray-600" />
           </div>
           <div>
-            <h3 className="font-bold text-blue-700 text-base">Branch P&amp;L Summary</h3>
-            <p className="text-xs text-blue-400 mt-0.5">Revenue, expenses and profitability by branch</p>
+            <h3 className="font-bold text-gray-800 text-base">Branch P&amp;L Summary</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Revenue, expenses and profitability by branch</p>
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <div className="w-44">
-            <SearchableSelect
-              value={filterBranch}
-              onChange={setFilterBranch}
-              options={branches.map((b) => ({ value: String(b.id), label: b.name }))}
-              placeholder="All Branches"
-              triggerClassName="py-2"
-            />
-          </div>
+          {isAdmin && (
+            <div className="w-44">
+              <SearchableSelect
+                value={filterBranch}
+                onChange={setFilterBranch}
+                options={branches.map((b) => ({ value: String(b.id), label: b.name }))}
+                placeholder="All Branches"
+                triggerClassName="py-2"
+              />
+            </div>
+          )}
+          {isAdmin && (
           <button
             onClick={() => exportExcel({ ...( dateFrom ? { date_from: dateFrom } : {}), ...(dateTo ? { date_to: dateTo } : {}) })}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-[0.98] transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1a0a0b] text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-[#2c1417] hover:shadow-md active:scale-[0.98] transition-all"
           >
             <Download className="w-3.5 h-3.5" /> Export
           </button>
+          )}
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gradient-to-r from-blue-50/60 to-white border-b border-blue-100">
+          <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-blue-500">Branch</th>
+              <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400">Branch</th>
               <SortTH col="revenue" right>Revenue</SortTH>
               <SortTH col="expense" right>Expenses</SortTH>
               <SortTH col="profit"  right>Net Profit</SortTH>
-              <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-blue-500 min-w-[140px]">Margin</th>
+              <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400 min-w-[140px]">Margin</th>
             </tr>
           </thead>
           <tbody>
@@ -175,7 +179,7 @@ export function ProfitabilityTable({ globalFilters, branches }) {
                 {sorted.map((r) => {
                   const margin = r.revenue > 0 ? (r.profit / r.revenue) * 100 : 0;
                   return (
-                    <tr key={r.branch_id} className="border-b border-gray-50 hover:bg-blue-50/40 transition-colors">
+                    <tr key={r.branch_id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3.5">
                         <span className="font-semibold text-gray-800 uppercase">{r.branch}</span>
                       </td>
@@ -191,8 +195,8 @@ export function ProfitabilityTable({ globalFilters, branches }) {
                   );
                 })}
 
-                {/* General Operations row — shown when not filtering by branch */}
-                {!filterBranch && generalExpense > 0 && (
+                {/* General Operations row — admin only, shown when not filtering by branch */}
+                {isAdmin && !filterBranch && generalExpense > 0 && (
                   <tr className="border-b border-gray-50 bg-amber-50/30 hover:bg-amber-50/60 transition-colors">
                     <td className="px-4 py-3.5">
                       <div>
@@ -215,18 +219,18 @@ export function ProfitabilityTable({ globalFilters, branches }) {
           {/* Totals footer */}
           {!loading && sorted.length > 0 && (
             <tfoot>
-              <tr className="bg-gray-900 text-white">
-                <td className="px-4 py-3.5 font-bold text-sm">Total</td>
-                <td className="px-4 py-3.5 text-right font-bold text-green-400">{fmt(totals.revenue)}</td>
-                <td className="px-4 py-3.5 text-right font-bold text-white/80">{fmt(totals.expense)}</td>
+              <tr className="bg-gray-50 border-t-2 border-gray-200">
+                <td className="px-4 py-3.5 font-bold text-sm text-gray-700">Total</td>
+                <td className="px-4 py-3.5 text-right font-bold text-green-700">{fmt(totals.revenue)}</td>
+                <td className="px-4 py-3.5 text-right font-bold text-gray-600">{fmt(totals.expense)}</td>
                 <td className="px-4 py-3.5 text-right">
-                  <span className={`font-black text-base ${totals.profit >= 0 ? "text-green-400" : "text-rose-400"}`}>
+                  <span className={`font-black text-base ${totals.profit >= 0 ? "text-green-700" : "text-rose-600"}`}>
                     {fmt(totals.profit)}
                   </span>
                 </td>
                 <td className="px-4 py-3.5">
                   {totals.revenue > 0 && (
-                    <span className={`text-sm font-bold ${totals.profit >= 0 ? "text-green-400" : "text-rose-400"}`}>
+                    <span className={`text-sm font-bold ${totals.profit >= 0 ? "text-green-700" : "text-rose-600"}`}>
                       {totals.profit > 0 ? "+" : ""}
                       {((totals.profit / totals.revenue) * 100).toFixed(1)}% margin
                     </span>

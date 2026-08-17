@@ -24,23 +24,23 @@ function AddCategoryInline({ onCreated, onCancel }) {
   };
 
   return (
-    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
+    <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-blue-700">New Category</p>
-        <button onClick={onCancel} className="text-blue-400 hover:text-blue-700"><X className="w-3.5 h-3.5" /></button>
+        <p className="text-xs font-semibold text-gray-700">New Category</p>
+        <button onClick={onCancel} className="text-gray-400 hover:text-gray-700"><X className="w-3.5 h-3.5" /></button>
       </div>
       <input
         autoFocus
         value={name}
         onChange={(e) => { setName(e.target.value); setErr(""); }}
         placeholder="Category name…"
-        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-100"
       />
       <input
         value={desc}
         onChange={(e) => setDesc(e.target.value)}
         placeholder="Description (optional)"
-        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-100"
       />
       {err && <p className="text-xs text-red-500">{err}</p>}
       <div className="flex gap-2">
@@ -53,7 +53,8 @@ function AddCategoryInline({ onCreated, onCancel }) {
   );
 }
 
-export function ExpenseModal({ open, onClose, onSaved, expense, branches }) {
+export function ExpenseModal({ open, onClose, onSaved, expense, branches, currentUser }) {
+  const isAdmin = currentUser?.role === "super_admin";
   const isEdit = !!expense;
   const { register, handleSubmit, watch, reset, setValue, formState: { errors, isSubmitting } } = useForm();
   const scope = watch("expense_type", expense?.expense_type ?? "GENERAL");
@@ -79,11 +80,15 @@ export function ExpenseModal({ open, onClose, onSaved, expense, branches }) {
             amount: expense.amount,
             expense_date: expense.expense_date,
           }
-        : { expense_type: "GENERAL", branch: "", category: "", description: "", amount: "", expense_date: "" }
+        : {
+            expense_type: isAdmin ? "GENERAL" : "BRANCH",
+            branch: isAdmin ? "" : (currentUser?.branch_id ?? ""),
+            category: "", description: "", amount: "", expense_date: "",
+          }
       );
       setShowAddCat(false);
     }
-  }, [open, expense, reset]);
+  }, [open, expense, reset, isAdmin, currentUser]);
 
   const handleCategoryCreated = (cat) => {
     setCategories((prev) => [...prev, cat]);
@@ -106,7 +111,8 @@ export function ExpenseModal({ open, onClose, onSaved, expense, branches }) {
   return (
     <Modal open={open} onClose={onClose} title={isEdit ? "Edit Expense" : "Add Expense"} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Scope */}
+        {/* Scope — admin only, branch users are always BRANCH */}
+        {isAdmin && (
         <div>
           <Label>Expense Scope</Label>
           <div className="flex gap-3 mt-1">
@@ -118,14 +124,24 @@ export function ExpenseModal({ open, onClose, onSaved, expense, branches }) {
             ))}
           </div>
         </div>
+        )}
 
+        {/* Branch — admin picks, branch user sees their branch as read-only */}
         {scope === "BRANCH" && (
           <div>
             <Label htmlFor="branch">Branch</Label>
-            <select id="branch" {...register("branch", { required: scope === "BRANCH" })} className={sel}>
-              <option value="">Select branch…</option>
-              {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+            {isAdmin ? (
+              <select id="branch" {...register("branch", { required: true })} className={sel}>
+                <option value="">Select branch…</option>
+                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            ) : (
+              <input
+                readOnly
+                value={currentUser?.branch_name ?? ""}
+                className={`${sel} bg-gray-50 text-gray-500 cursor-not-allowed`}
+              />
+            )}
             {errors.branch && <p className={errCls}>Branch is required</p>}
           </div>
         )}
@@ -142,7 +158,7 @@ export function ExpenseModal({ open, onClose, onSaved, expense, branches }) {
             <button
               type="button"
               onClick={() => setShowAddCat(true)}
-              className="mt-1.5 flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+              className="mt-1.5 flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 font-medium"
             >
               <Plus className="w-3 h-3" /> Add New Category
             </button>

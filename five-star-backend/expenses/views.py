@@ -80,7 +80,14 @@ def expense_list_create(request):
     if request.method == "GET":
         qs = Expense.objects.select_related("branch", "category", "created_by")
         p = request.query_params
-        if p.get("branch"):
+        user = request.user
+        is_admin = user.role == "super_admin"
+        # Branch users are always scoped to their own branch
+        if not is_admin:
+            branch_id = getattr(user, "branch_id", None)
+            if branch_id:
+                qs = qs.filter(branch_id=branch_id)
+        elif p.get("branch"):
             qs = qs.filter(branch_id=p["branch"])
         if p.get("expense_type"):
             qs = qs.filter(expense_type=p["expense_type"])
@@ -120,12 +127,16 @@ def expense_detail(request, pk):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def analytics_profitability_kpi(request):
-    err = _admin_required(request.user)
-    if err:
-        return err
-
     params = request.query_params
+    user = request.user
+    is_admin = user.role == "super_admin"
+
+    # Branch users are always scoped to their own branch
     branch_id = params.get("branch")
+    if not is_admin:
+        branch_id = str(getattr(user, "branch_id", None) or "")
+        if not branch_id:
+            return Response({"detail": "No branch assigned."}, status=403)
 
     # Revenue — exclude transactions with no student (orphaned)
     rev_qs = _date_filter_payment(
@@ -142,29 +153,28 @@ def analytics_profitability_kpi(request):
 
     net_profit = float(total_revenue) - float(total_expenses)
 
-    # Top branch by profit
-    branch_rev = (
-        _date_filter_payment(
-            PaymentTransaction.objects.filter(status="completed", student__isnull=False), params
-        )
-        .values("student__branch_id", "student__branch__name")
-        .annotate(rev=Sum("amount"))
-    )
-    rev_map = {r["student__branch_id"]: float(r["rev"] or 0) for r in branch_rev}
-    exp_map = {
-        e["branch_id"]: float(e["exp"] or 0)
-        for e in _date_filter_expense(Expense.objects.filter(expense_type="BRANCH"), params)
-        .values("branch_id").annotate(exp=Sum("amount"))
-    }
-
     top_branch_name = top_profit = None
-    if rev_map:
-        best = max(set(rev_map) | set(exp_map), key=lambda bid: rev_map.get(bid, 0) - exp_map.get(bid, 0))
-        for r in branch_rev:
-            if r["student__branch_id"] == best:
-                top_branch_name = r["student__branch__name"]
-                top_profit = rev_map.get(best, 0) - exp_map.get(best, 0)
-                break
+    if is_admin:
+        branch_rev = (
+            _date_filter_payment(
+                PaymentTransaction.objects.filter(status="completed", student__isnull=False), params
+            )
+            .values("student__branch_id", "student__branch__name")
+            .annotate(rev=Sum("amount"))
+        )
+        rev_map = {r["student__branch_id"]: float(r["rev"] or 0) for r in branch_rev}
+        exp_map = {
+            e["branch_id"]: float(e["exp"] or 0)
+            for e in _date_filter_expense(Expense.objects.filter(expense_type="BRANCH"), params)
+            .values("branch_id").annotate(exp=Sum("amount"))
+        }
+        if rev_map:
+            best = max(set(rev_map) | set(exp_map), key=lambda bid: rev_map.get(bid, 0) - exp_map.get(bid, 0))
+            for r in branch_rev:
+                if r["student__branch_id"] == best:
+                    top_branch_name = r["student__branch__name"]
+                    top_profit = rev_map.get(best, 0) - exp_map.get(best, 0)
+                    break
 
     return Response({
         "total_revenue": float(total_revenue),
@@ -179,11 +189,37 @@ def analytics_profitability_kpi(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def analytics_branch_profitability(request):
-    err = _admin_required(request.user)
-    if err:
-        return err
-
     params = request.query_params
+    user = request.user
+    is_admin = user.role == "super_admin"
+
+    # Branch users only see their own branch
+    if not is_admin:
+        branch_id = getattr(user, "branch_id", None)
+        if not branch_id:
+            return Response([], status=200)
+        rev_qs = _date_filter_payment(
+            PaymentTransaction.objects.filter(status="completed", student__isnull=False, student__branch_id=branch_id), params
+        )
+        revenue = float(rev_qs.aggregate(t=Sum("amount"))["t"] or 0)
+        expense = float(
+            _date_filter_expense(Expense.objects.filter(expense_type="BRANCH", branch_id=branch_id), params)
+            .aggregate(t=Sum("amount"))["t"] or 0
+        )
+        profit = revenue - expense
+        try:
+            branch_name = Branch.objects.get(pk=branch_id).name
+        except Branch.DoesNotExist:
+            branch_name = str(branch_id)
+        return Response([{
+            "branch_id": branch_id,
+            "branch": branch_name,
+            "revenue": revenue,
+            "expense": expense,
+            "profit": profit,
+            "margin": round((profit / revenue * 100), 1) if revenue else 0,
+        }])
+
     branch_ids = [int(b) for b in params.getlist("branches") if b.isdigit()]
 
     rev_qs = _date_filter_payment(
@@ -255,15 +291,17 @@ def analytics_general_expenses(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def analytics_revenue_time_series(request):
-    err = _admin_required(request.user)
-    if err:
-        return err
-
     params = request.query_params
+    user = request.user
+    is_admin = user.role == "super_admin"
     granularity = params.get("granularity", "monthly")
     TruncFn = {"daily": TruncDay, "weekly": TruncWeek, "monthly": TruncMonth}.get(granularity, TruncMonth)
-    branch_id = params.get("branch")
     GENERAL = "__GENERAL__"
+    # Branch users are always scoped to their own branch
+    if not is_admin:
+        branch_id = str(getattr(user, "branch_id", None) or "")
+    else:
+        branch_id = params.get("branch")
 
     rev_qs = _date_filter_payment(
         PaymentTransaction.objects.filter(status="completed", student__isnull=False), params
@@ -404,8 +442,18 @@ def export_profitability(request):
 def export_expenses(request):
     qs = Expense.objects.select_related("branch", "category", "created_by")
     p = request.query_params
-    if p.get("branch"):
+    user = request.user
+    is_admin = user.role == "super_admin"
+
+    # Branch users can only export their own branch's data
+    if not is_admin:
+        branch_id = getattr(user, "branch_id", None)
+        if not branch_id:
+            return Response({"detail": "No branch assigned."}, status=403)
+        qs = qs.filter(branch_id=branch_id)
+    elif p.get("branch"):
         qs = qs.filter(branch_id=p["branch"])
+
     if p.get("expense_type"):
         qs = qs.filter(expense_type=p["expense_type"])
     if p.get("date_from"):

@@ -61,14 +61,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: "expenses",
-        element: (
-          <ProtectedRoute allowedRoles={adminOnly}>
-            <Expenses />
-          </ProtectedRoute>
-        ),
-      },
+      { path: "expenses", element: <Expenses /> },
       { path: "exams", element: <Exams /> },
       { path: "reports", element: <Reports /> },
       { path: "settings", element: <Settings /> },

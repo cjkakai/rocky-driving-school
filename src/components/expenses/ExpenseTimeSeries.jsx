@@ -36,7 +36,7 @@ function CustomTooltip({ active, payload, label, metricColor }) {
   );
 }
 
-export function ExpenseTimeSeries({ branches, globalFilters }) {
+export function ExpenseTimeSeries({ branches, globalFilters, branchId }) {
   const [selected, setSelected] = useState("");
   const [granularity, setGranularity] = useState("daily");
   const [metric, setMetric] = useState("revenue");
@@ -52,7 +52,10 @@ export function ExpenseTimeSeries({ branches, globalFilters }) {
     if (dateFrom) base.date_from = dateFrom;
     if (dateTo)   base.date_to   = dateTo;
 
-    if (selected === GENERAL_VALUE) {
+    // branch user — always scope to their branch
+    if (branchId) {
+      base.branch = branchId;
+    } else if (selected === GENERAL_VALUE) {
       base.branch = GENERAL_VALUE;
     } else if (selected) {
       base.branch = selected;
@@ -68,7 +71,7 @@ export function ExpenseTimeSeries({ branches, globalFilters }) {
         profit:  merged.map((d) => ({ period: d.period, value: d.profit })),
       });
     }).finally(() => setLoading(false));
-  }, [selected, granularity, dateFrom, dateTo]);
+  }, [selected, granularity, dateFrom, dateTo, branchId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -125,19 +128,21 @@ export function ExpenseTimeSeries({ branches, globalFilters }) {
               ))}
             </div>
 
-            {/* Branch/scope dropdown */}
-            <div className="w-44">
-              <SearchableSelect
-                value={selected}
-                onChange={setSelected}
-                options={[
-                  { value: "__GENERAL__", label: "General Only" },
-                  ...branches.map((b) => ({ value: String(b.id), label: b.name })),
-                ]}
-                placeholder="All Branches"
-                triggerClassName="py-2"
-              />
-            </div>
+            {/* Branch/scope dropdown — admin only */}
+            {!branchId && (
+              <div className="w-44">
+                <SearchableSelect
+                  value={selected}
+                  onChange={setSelected}
+                  options={[
+                    { value: "__GENERAL__", label: "General Only" },
+                    ...branches.map((b) => ({ value: String(b.id), label: b.name })),
+                  ]}
+                  placeholder="All Branches"
+                  triggerClassName="py-2"
+                />
+              </div>
+            )}
 
             {/* Granularity pills */}
             <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
