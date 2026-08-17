@@ -439,7 +439,7 @@ export default function Exams() {
   return (
     <>
       <ToastContainer />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/70 to-slate-100 mt-8 space-y-6">
+      <div className="min-h-screen mt-8 space-y-6">
 
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -458,7 +458,7 @@ export default function Exams() {
             <StatCard label="This Month" value={filteredExams.length} sub="Exams" color="blue" icon={<ClipboardList className="w-5 h-5" />} />
             <StatCard label="Passed"     value={totalPassed}          sub="Success" color="green" icon={<CheckCircle className="w-5 h-5" />} />
             <StatCard label="Failed"     value={totalFailed}          sub="Retakes" color="red"   icon={<XCircle className="w-5 h-5" />} />
-            <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 flex items-center justify-center shadow-sm">
+            <div className="rounded-3xl border border-gray-200 bg-white flex items-center justify-center shadow-sm">
               <PassRateRing value={passRate} />
             </div>
           </div>
@@ -534,7 +534,7 @@ export default function Exams() {
         {/* Content */}
         {loading ? (
           <div className="py-24 text-center text-gray-400">
-            <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-blue-400" />Loading exams...
+            <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-[#c41820]" />Loading exams...
           </div>
         ) : filteredExams.length === 0 ? (
           <div className="py-24 text-center rounded-3xl border border-gray-200 bg-white shadow-sm">

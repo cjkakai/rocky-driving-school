@@ -85,16 +85,16 @@ export default function Targets() {
     if (!weekPeriod || !monthPeriod) return null;
     if (metric === "revenue") {
       return (
-        <div className="flex items-center gap-1 bg-blue-100/60 rounded-xl p-1">
+        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
           <button onClick={() => setWeekPeriod((p) => shiftWeek(p, -1))} className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm transition-all">
-            <ChevronLeft className="w-3.5 h-3.5 text-blue-500" />
+            <ChevronLeft className="w-3.5 h-3.5 text-gray-500" />
           </button>
-          <span className="text-xs font-semibold text-blue-700 px-2 min-w-[160px] text-center">{weekLabel(weekPeriod)}</span>
+          <span className="text-xs font-semibold text-gray-700 px-2 min-w-[160px] text-center">{weekLabel(weekPeriod)}</span>
           <button onClick={() => setWeekPeriod((p) => shiftWeek(p, 1))} disabled={isCurrentPeriod} className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm transition-all disabled:opacity-30">
-            <ChevronRight className="w-3.5 h-3.5 text-blue-500" />
+            <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
           </button>
           {!isCurrentPeriod && serverPeriod && (
-            <button onClick={() => setWeekPeriod({ year: serverPeriod.year, week: serverPeriod.week })} className="text-[10px] font-bold text-blue-600 px-2 py-1 rounded-lg hover:bg-white transition-colors">
+            <button onClick={() => setWeekPeriod({ year: serverPeriod.year, week: serverPeriod.week })} className="text-[10px] font-bold text-gray-600 px-2 py-1 rounded-lg hover:bg-white transition-colors">
               Now
             </button>
           )}
@@ -102,16 +102,16 @@ export default function Targets() {
       );
     }
     return (
-      <div className="flex items-center gap-1 bg-blue-100/60 rounded-xl p-1">
+      <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
         <button onClick={() => setMonthPeriod((p) => shiftMonth(p, -1))} className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm transition-all">
-          <ChevronLeft className="w-3.5 h-3.5 text-blue-500" />
+          <ChevronLeft className="w-3.5 h-3.5 text-gray-500" />
         </button>
-        <span className="text-xs font-semibold text-blue-700 px-2 min-w-[130px] text-center">{monthLabel(monthPeriod)}</span>
+        <span className="text-xs font-semibold text-gray-700 px-2 min-w-[130px] text-center">{monthLabel(monthPeriod)}</span>
         <button onClick={() => setMonthPeriod((p) => shiftMonth(p, 1))} disabled={isCurrentPeriod} className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm transition-all disabled:opacity-30">
-          <ChevronRight className="w-3.5 h-3.5 text-blue-500" />
+          <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
         </button>
         {!isCurrentPeriod && serverPeriod && (
-          <button onClick={() => setMonthPeriod({ year: serverPeriod.year, month: serverPeriod.month })} className="text-[10px] font-bold text-blue-600 px-2 py-1 rounded-lg hover:bg-white transition-colors">
+          <button onClick={() => setMonthPeriod({ year: serverPeriod.year, month: serverPeriod.month })} className="text-[10px] font-bold text-gray-600 px-2 py-1 rounded-lg hover:bg-white transition-colors">
             Now
           </button>
         )}
@@ -120,7 +120,7 @@ export default function Targets() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/70 to-slate-100 p-6 space-y-6">
+    <div className="min-h-screen p-6 space-y-6">
 
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -140,10 +140,10 @@ export default function Targets() {
       </div>
 
       {/* Controls bar */}
-      <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 rounded-2xl border border-blue-100 shadow-sm px-4 py-3">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Metric toggle */}
-          <div className="flex gap-1 bg-blue-100/60 rounded-xl p-1">
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
             {[
               { value: "revenue",       label: "Revenue",       sub: "Weekly"  },
               { value: "registrations", label: "Registrations", sub: "Monthly" },
@@ -153,13 +153,13 @@ export default function Targets() {
                 onClick={() => setMetric(m.value)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   metric === m.value
-                    ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm shadow-blue-200"
-                    : "text-blue-700/70 hover:text-blue-800"
+                    ? "bg-[#1a0a0b] text-white shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {m.label}
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${
-                  metric === m.value ? "bg-white/20 text-white" : "bg-blue-100 text-blue-600"
+                  metric === m.value ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                 }`}>{m.sub}</span>
               </button>
             ))}

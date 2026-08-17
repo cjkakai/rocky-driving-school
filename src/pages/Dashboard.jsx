@@ -97,7 +97,7 @@ export default function Dashboard() {
   const topBranch           = branchPerformance[0];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen">
 
       {/* ── Page header ─────────────────────────────────────────────── */}
       <div className="bg-white border-b border-gray-100 px-6 py-5">

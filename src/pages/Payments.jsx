@@ -112,7 +112,7 @@ export default function Payments() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/70 to-slate-100 space-y-5 p-6">
+    <div className="min-h-screen space-y-5 p-6">
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
         <div>

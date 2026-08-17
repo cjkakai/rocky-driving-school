@@ -162,7 +162,7 @@ export default function Instructors() {
   const inactive = filtered.filter((i) => !i.is_active);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/70 to-slate-100 p-6 space-y-6">
+    <div className="min-h-screen p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -237,8 +237,8 @@ export default function Instructors() {
                 <tr key={instructor.id} className={`hover:bg-gray-50/50 transition-colors ${!instructor.is_active ? "opacity-50" : ""}`}>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-blue-700">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-gray-700">
                           {instructor.full_name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
                         </span>
                       </div>

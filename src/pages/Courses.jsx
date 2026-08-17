@@ -193,15 +193,15 @@ export default function Courses() {
       </div>
 
       {/* Search */}
-      <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 rounded-2xl border border-blue-100 shadow-sm p-4">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
         <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400" />
-          <Input placeholder="Search by category or class..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 border-blue-100 bg-blue-50/40 focus:ring-blue-200 focus:border-blue-300" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input placeholder="Search by category or class..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         {error && (
           <div className="px-6 py-4 text-sm text-red-600 bg-red-50 border-b border-red-100">{error}</div>
         )}
@@ -219,7 +219,7 @@ export default function Courses() {
           <div className="overflow-x-auto">
             <table className="w-full text-[0.9rem]">
               <thead>
-                <tr className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-blue-100">
+                <tr className="bg-gray-50 border-b border-gray-100">
                   <TH>Category</TH>
                   <TH>Class</TH>
                   <TH>Lessons</TH>
@@ -232,7 +232,7 @@ export default function Courses() {
               </thead>
               <tbody>
                 {filtered.map((c) => (
-                  <tr key={c.id} className="border-b border-gray-100 hover:bg-blue-50/40 transition-colors">
+                  <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-4 text-gray-700 max-w-[180px]"><span className="line-clamp-2">{c.category}</span></td>
                     <td className="px-4 py-4 font-semibold text-gray-900 max-w-[140px]"><span className="line-clamp-2">{c.class_name}</span></td>
                     <td className="px-4 py-4 text-gray-600 max-w-[100px]"><span className="line-clamp-2">{c.lessons}</span></td>

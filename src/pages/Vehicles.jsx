@@ -47,7 +47,7 @@ export default function Vehicles() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/70 to-slate-100 p-6 space-y-6">
+    <div className="min-h-screen p-6 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Vehicle Management</h1>
@@ -60,7 +60,7 @@ export default function Vehicles() {
               onClick={() => setQuickFilter(f.key)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
                 quickFilter === f.key
-                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                  ? "bg-[#1a0a0b] text-white border-[#1a0a0b] shadow-sm"
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
               }`}
             >

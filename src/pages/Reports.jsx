@@ -67,7 +67,7 @@ export default function Reports() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/70 to-slate-100 p-6 space-y-5">
+    <div className="min-h-screen bg-gray-100 p-6 space-y-5">
 
       {/* ── Header ── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -82,7 +82,7 @@ export default function Reports() {
               onClick={() => applyQuick(q)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
                 activeQuick === q.label
-                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                  ? "bg-[#1a0a0b] text-white border-[#1a0a0b] shadow-sm"
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
               }`}
             >
@@ -104,19 +104,19 @@ export default function Reports() {
           <div className="flex items-center gap-1.5">
             <input type="date" value={filters.dateFrom}
               onChange={(e) => patch({ dateFrom: e.target.value })}
-              className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
+              className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-colors"
             />
             <span className="text-gray-300 text-sm">→</span>
             <input type="date" value={filters.dateTo} min={filters.dateFrom}
               onChange={(e) => patch({ dateTo: e.target.value })}
-              className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
+              className="px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-colors"
             />
           </div>
           {isAdmin && branches.length > 0 && (
             <div className="relative">
               <Building2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
               <select value={filters.branch} onChange={(e) => patch({ branch: e.target.value })}
-                className="pl-8 pr-3 py-1.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
+                className="pl-8 pr-3 py-1.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 transition-colors"
               >
                 <option value="">All branches</option>
                 {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -138,7 +138,7 @@ export default function Reports() {
         {TABS.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setTab(key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              tab === key ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-800"
+              tab === key ? "bg-[#1a0a0b] text-white shadow-sm" : "text-gray-500 hover:text-gray-800"
             }`}
           >
             <Icon className="w-4 h-4" /> {label}
