@@ -1,7 +1,7 @@
 export const STATUS_OPTIONS = ["active", "dormant", "offloaded"];
 export const COURSE_STATUS_OPTIONS = [
   "onboarded", "pending_pdl", "active", "pending_exam_booking",
-  "exam_booked", "exam_approved", "failed", "retake_booked", "completed", "dormant",
+  "exam_list", "exam_approved", "failed", "retake_booked", "completed", "dormant",
 ];
 export const PDL_DAYS_OPTIONS = ["7", "15", "30"];
 export const PAGE_SIZE = 50;

@@ -328,7 +328,7 @@ function FinancialSummary({ summary }) {
 export function StudentStatCards({ summary }) {
   const totalCourses = summary?.total_courses ?? 0;
   const courseCounts = summary?.course_counts ?? {};
-  const examListed   = (courseCounts["exam_booked"] ?? 0) + (courseCounts["exam_approved"] ?? 0);
+  const examListed   = (courseCounts["exam_list"] ?? 0) + (courseCounts["exam_approved"] ?? 0);
   const failedRetake = (courseCounts["failed"] ?? 0) + (courseCounts["retake_booked"] ?? 0);
   const CARDS = [
     { label: "Students",           icon: Users,         accent: "#1a0a0b", value: summary?.student_count    ?? 0 },

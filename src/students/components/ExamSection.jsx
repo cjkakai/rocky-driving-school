@@ -1,10 +1,14 @@
-import { Clock, CheckCircle, XCircle, Award, FileText, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Clock, CheckCircle, XCircle, Award, FileText, Loader2, ListPlus } from "lucide-react";
 import { fmtDate } from "../../utils/students.utils";
-import { canBookExam, examBlockedReason } from "../../utils/studentActions";
+import { canSubmitForExam, submitExamBlockedReason } from "../../utils/studentActions";
+import { examsAPI } from "../../api/exams.api";
 
-export function ExamSection({ sc, exam, isBranchUser, isSuperAdmin, loading, onBookExam, onApproveExam }) {
-  const examReason      = examBlockedReason(sc);
-  const eligibleForExam = isBranchUser && canBookExam(sc);
+export function ExamSection({ sc, exam, isBranchUser, isSuperAdmin, loading, onSubmitForExam, onApproveExam, activeExams = [] }) {
+  const [selectedExamId, setSelectedExamId] = useState("");
+  const submitReason     = submitExamBlockedReason(sc);
+  const eligibleToSubmit = isBranchUser && canSubmitForExam(sc);
+  const canShowSubmit    = isBranchUser && ["active", "retake_booked"].includes(sc.status);
 
   const statusConfig = {
     pending:   { color: "text-amber-700 bg-amber-50 border-amber-200",  icon: <Clock className="w-3 h-3" />,       label: "Pending" },
@@ -36,27 +40,46 @@ export function ExamSection({ sc, exam, isBranchUser, isSuperAdmin, loading, onB
         <span className="text-xs text-gray-400 italic">No exam booked</span>
       )}
 
-      {exam?.status === "pending" && isSuperAdmin && (
-        <button
-          onClick={onApproveExam}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white py-1.5 rounded-lg transition-colors disabled:opacity-50"
-        >
-          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
-          Approve Exam
-        </button>
+      {/* Admin: assign to exam list when pending_exam_booking */}
+      {isSuperAdmin && sc.status === "pending_exam_booking" && (
+        <div className="space-y-2">
+          <select
+            value={selectedExamId}
+            onChange={(e) => setSelectedExamId(e.target.value)}
+            className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a0a0b]/20 focus:border-[#1a0a0b] text-gray-700"
+          >
+            <option value="">Select exam list…</option>
+            {activeExams.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.exam_name} — {fmtDate(e.exam_date)}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => onApproveExam(selectedExamId)}
+            disabled={loading || !selectedExamId}
+            className="w-full flex items-center justify-center gap-1.5 text-xs font-bold bg-[#1a0a0b] hover:bg-[#2d1214] text-white py-2 rounded-xl transition-colors disabled:opacity-40"
+          >
+            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <ListPlus className="w-3 h-3" />}
+            Add to Exam List
+          </button>
+        </div>
       )}
 
-      {eligibleForExam && (
-        <button
-          onClick={() => onBookExam(sc)}
-          className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold border border-blue-300 text-blue-700 hover:bg-blue-50 py-1.5 rounded-lg transition-colors"
-        >
-          <FileText className="w-3 h-3" /> Book Exam
-        </button>
+      {canShowSubmit && (
+        eligibleToSubmit ? (
+          <button
+            onClick={onSubmitForExam}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-1.5 text-xs font-bold bg-[#1a0a0b] hover:bg-[#2d1214] text-white py-2 rounded-xl transition-colors disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
+            Submit for Exam List
+          </button>
+        ) : (
+          submitReason && <p className="text-xs text-red-400 italic">{submitReason}</p>
+        )
       )}
-
-      {examReason && <p className="text-xs text-red-400 italic">{examReason}</p>}
     </div>
   );
 }

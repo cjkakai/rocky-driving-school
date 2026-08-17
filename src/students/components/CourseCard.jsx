@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   PlayCircle, RefreshCw, CheckCircle, Banknote, Calendar,
   Award, Pencil, ChevronDown, ChevronUp, Loader2, Building2,
@@ -21,7 +21,7 @@ function statusGrad(status) {
   return { from: cfg.from, to: cfg.to, accent: cfg.color, ring: cfg.ring };
 }
 
-export function CourseCard({ sc, isBranchUser, isSuperAdmin, courses, studentCourses = [], onBookExam, onPatch, onSuccess }) {
+export function CourseCard({ sc, isBranchUser, isSuperAdmin, courses, studentCourses = [], onPatch, onSuccess }) {
   const { agreed, paid, balance } = computeCourseBalance(sc);
   const progress = agreed > 0 ? Math.min(100, (paid / agreed) * 100) : 0;
   const exam     = sc.exam_booking;
@@ -31,6 +31,11 @@ export function CourseCard({ sc, isBranchUser, isSuperAdmin, courses, studentCou
   const [showStk,      setShowStk]      = useState(false);
   const [showPayments, setShowPayments] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
+  const [activeExams,  setActiveExams]  = useState([]);
+
+  useEffect(() => {
+    if (isSuperAdmin) examsAPI.getAll({ status: "active" }).then(setActiveExams).catch(() => {});
+  }, [isSuperAdmin]);
 
   const isTerminal = sc.status === "completed" || sc.status === "transferred";
 
@@ -55,10 +60,11 @@ export function CourseCard({ sc, isBranchUser, isSuperAdmin, courses, studentCou
     return result;
   };
 
-  const handleBookPdl       = () => runAndPatch(() => pdlAPI.create({ student_course: sc.id }), "PDL booked — awaiting approval");
-  const handleActivate      = () => runAndPatch(() => studentCoursesAPI.activateCourse(sc.id), "Course reactivated");
-  const handleRetake        = () => runAndPatch(() => studentCoursesAPI.applyRetake(sc.id), "Retake applied");
-  const handleMarkCompleted = () => runAndPatch(() => studentCoursesAPI.markCompleted(sc.id), "Course marked as completed");
+  const handleBookPdl        = () => runAndPatch(() => pdlAPI.create({ student_course: sc.id }), "PDL submitted — awaiting HQ approval");
+  const handleActivate       = () => runAndPatch(() => studentCoursesAPI.activateCourse(sc.id), "Course reactivated");
+  const handleRetake         = () => runAndPatch(() => studentCoursesAPI.applyRetake(sc.id), "Retake applied");
+  const handleMarkCompleted  = () => runAndPatch(() => studentCoursesAPI.markCompleted(sc.id), "Course marked as completed");
+  const handleSubmitForExam  = () => runAndPatch(() => studentCoursesAPI.submitForExam(sc.id), "Submitted for exam list — awaiting HQ review");
 
   const paymentCount = (sc.payments ?? []).length;
 
@@ -204,8 +210,9 @@ export function CourseCard({ sc, isBranchUser, isSuperAdmin, courses, studentCou
             isBranchUser={isBranchUser}
             isSuperAdmin={isSuperAdmin}
             loading={loading}
-            onBookExam={onBookExam}
-            onApproveExam={() => runAndPatch(() => examsAPI.approve(exam.id), "Exam approved")}
+            activeExams={activeExams}
+            onSubmitForExam={handleSubmitForExam}
+            onApproveExam={(examId) => runAndPatch(() => examsAPI.createBooking({ student_course: sc.id, exam: examId }), "Student added to exam list")}
           />
         </div>
 

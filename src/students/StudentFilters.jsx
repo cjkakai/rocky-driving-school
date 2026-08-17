@@ -28,7 +28,7 @@ const COURSE_STATUS_OPTIONS = [
   { value: "pending_pdl",          label: "Pending PDL" },
   { value: "active",               label: "Active" },
   { value: "pending_exam_booking", label: "Pending Exam" },
-  { value: "exam_booked",          label: "Exam List" },
+  { value: "exam_list",            label: "Exam List" },
   { value: "exam_approved",        label: "Exam Approved" },
   { value: "failed",               label: "Failed" },
   { value: "retake_booked",        label: "Retake Booked" },

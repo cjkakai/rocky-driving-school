@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from .models import Course, StudentCourse, CourseTransfer, Lesson, Instructor
 from .serializers import CourseSerializer, StudentCourseSerializer, LessonSerializer, InstructorSerializer, VehicleSerializer
-from students.lifecycle import apply_pdl_reactivation, apply_retake, mark_refresher_completed, on_payment_completed, sync_student_status
+from students.lifecycle import apply_pdl_reactivation, apply_retake, mark_refresher_completed, on_payment_completed, sync_student_status, has_full_payment, has_lessons_complete, get_course_pdl, is_pdl_expired
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -49,6 +49,42 @@ class StudentCourseViewSet(viewsets.ModelViewSet):
         serializer.save(payment_reference=payment_reference, status="onboarded")
         from students.lifecycle import sync_student_status
         sync_student_status(student)
+
+    @action(detail=True, methods=["post"])
+    def submit_for_exam(self, request, pk=None):
+        """Branch action: submit student for exam list. active/retake_booked → pending_exam_booking."""
+        sc = self.get_object()
+
+        if sc.status not in ("active", "retake_booked"):
+            return Response(
+                {"detail": f"Cannot submit for exam from status '{sc.status}'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not has_full_payment(sc):
+            return Response(
+                {"detail": "Full payment required before submitting for exam list."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if sc.status == "active":
+            if not sc.course.is_refresher_course:
+                pdl = get_course_pdl(sc)
+                if not pdl or is_pdl_expired(pdl):
+                    return Response(
+                        {"detail": "An active PDL is required before submitting for exam list."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            if not has_lessons_complete(sc):
+                return Response(
+                    {"detail": f"All {sc.course.lessons} lessons must be completed before submitting for exam list."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        sc.status = "pending_exam_booking"
+        sc.save(update_fields=["status", "updated_at"])
+        sync_student_status(sc.student)
+        return Response(StudentCourseSerializer(sc, context={"request": request}).data)
 
     @action(detail=True, methods=["post"])
     def activate_course(self, request, pk=None):
@@ -274,7 +310,6 @@ class LessonViewSet(viewsets.ModelViewSet):
             l.duration_minutes for l in qs.filter(status="completed")
         )
 
-        import re
         from academics.models import StudentCourse
         if student_course_id:
             sc_qs = StudentCourse.objects.filter(pk=student_course_id).select_related("course")
@@ -285,8 +320,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         total_required = 0
         for sc in sc_qs:
-            match = re.search(r"\d+", sc.course.lessons or "")
-            total_required += int(match.group()) if match else 0
+            total_required += sc.course.lessons or 0
 
         return Response({
             "total": total,

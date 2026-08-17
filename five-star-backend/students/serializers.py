@@ -56,10 +56,16 @@ class StudentCourseSerializer(serializers.Serializer):
     payments = PaymentInCourseSerializer(many=True)
     balance = serializers.SerializerMethodField()
     pdl_state = serializers.SerializerMethodField()
+    lessons_complete = serializers.SerializerMethodField()
+
+    def get_lessons_complete(self, obj):
+        from students.lifecycle import has_lessons_complete
+        return has_lessons_complete(obj)
     pending_pdl_booking_id = serializers.SerializerMethodField()
     exam_booking = serializers.SerializerMethodField()
     exam_attempt_count = serializers.IntegerField()
     last_exam_result = serializers.CharField()
+    lessons_complete = serializers.SerializerMethodField()
 
     def get_pending_pdl_booking_id(self, obj):
         pdl = obj.pdl_bookings.filter(status="pending").first()

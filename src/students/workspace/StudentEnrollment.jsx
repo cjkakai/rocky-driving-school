@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
   BookOpen, Building2, Pencil, PlayCircle, RefreshCw,
-  CheckCircle, XCircle, Clock, Award, Loader2, FileText,
+  CheckCircle, XCircle, Clock, Award, Loader2, FileText, ListPlus,
 } from "lucide-react";
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 import { Modal } from "../../ui";
@@ -17,7 +17,7 @@ import { examsAPI } from "../../api/exams.api";
 import { useAuth } from "../../context/AuthContext";
 import { useAsyncAction } from "../../useAsyncAction";
 import { fmt, fmtDate, computeCourseBalance, getCourseStatus } from "../../utils/students.utils";
-import { canBookExam, examBlockedReason } from "../../utils/studentActions";
+import { canSubmitForExam, submitExamBlockedReason } from "../../utils/studentActions";
 
 /* ── Tiny section label ─────────────────────────────────────────── */
 function SectionLabel({ children }) {
@@ -49,9 +49,10 @@ function PaymentRing({ pct, color }) {
 }
 
 /* ── Single enrollment panel ────────────────────────────────────── */
-function EnrollmentPanel({ sc, courses, studentCourses, isBranchUser, isSuperAdmin, onPatch, isSelected, onSelect }) {
+function EnrollmentPanel({ sc, courses, studentCourses, isBranchUser, isSuperAdmin, activeExams = [], onPatch, isSelected, onSelect }) {
   const [showStk, setShowStk] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
+  const [selectedExamId, setSelectedExamId] = useState("");
 
   const { agreed, paid, balance } = computeCourseBalance(sc);
   const paymentPct = agreed > 0 ? Math.min(100, (paid / agreed) * 100) : 0;
@@ -71,12 +72,16 @@ function EnrollmentPanel({ sc, courses, studentCourses, isBranchUser, isSuperAdm
 
   const { run, loading } = useAsyncAction({ onSuccess: patchCourse });
 
-  const handleBookPdl  = () => run(() => pdlAPI.create({ student_course: sc.id }), "PDL booked — awaiting approval");
+  const handleBookPdl  = () => run(() => pdlAPI.create({ student_course: sc.id }), "PDL submitted — awaiting HQ approval");
   const handleActivate = () => run(() => studentCoursesAPI.activateCourse(sc.id), "Course reactivated");
   const handleRetake   = () => run(() => studentCoursesAPI.applyRetake(sc.id), "Retake applied");
-  const handleMarkCompleted = () => run(() => studentCoursesAPI.markCompleted(sc.id), "Course marked as completed");
-  const handleApproveExam   = () => run(() => examsAPI.approve(exam.id), "Exam approved");
-  const handleApprovePdl    = () => run(() => pdlAPI.approve(sc.pending_pdl_booking_id), "PDL approved");
+  const handleMarkCompleted  = () => run(() => studentCoursesAPI.markCompleted(sc.id), "Course marked as completed");
+  const handleApprovePdl     = () => run(() => pdlAPI.approve(sc.pending_pdl_booking_id), "PDL approved");
+  const handleSubmitForExam  = () => run(() => studentCoursesAPI.submitForExam(sc.id), "Submitted for exam list — awaiting HQ review");
+  const handleAddToExamList  = () => {
+    if (!selectedExamId) return;
+    run(() => examsAPI.createBooking({ student_course: sc.id, exam: selectedExamId }), "Student added to exam list");
+  };
 
   const examStatusConfig = {
     pending:   { color: "text-amber-700 bg-amber-50 border-amber-100",  icon: <Clock className="w-3 h-3" />,       label: "Pending approval" },
@@ -205,29 +210,50 @@ function EnrollmentPanel({ sc, courses, studentCourses, isBranchUser, isSuperAdm
                   <span className="text-xs text-gray-400 tabular-nums">{fmtDate(exam.exam_date)}</span>
                 )}
               </div>
-              {exam.status === "pending" && isSuperAdmin && (
-                <button
-                  onClick={handleApproveExam}
-                  disabled={loading}
-                  className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition-colors disabled:opacity-50"
-                >
-                  {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                  Approve Exam
-                </button>
-              )}
             </div>
           ) : (
             <span className="text-xs text-gray-400 italic">No exam booked</span>
           )}
-          {canBookExam(sc) && (
+
+          {/* Admin: assign to exam list when pending_exam_booking */}
+          {isSuperAdmin && sc.status === "pending_exam_booking" && (
+            <div className="mt-3 space-y-2">
+              <select
+                value={selectedExamId}
+                onChange={(e) => setSelectedExamId(e.target.value)}
+                className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a0a0b]/20 focus:border-[#1a0a0b] text-gray-700"
+              >
+                <option value="">Select exam list…</option>
+                {activeExams.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.exam_name} — {fmtDate(e.exam_date)}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleAddToExamList}
+                disabled={loading || !selectedExamId}
+                className="w-full flex items-center justify-center gap-1.5 text-xs font-bold bg-[#1a0a0b] hover:bg-[#2d1214] text-white py-2 rounded-xl transition-colors disabled:opacity-40"
+              >
+                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ListPlus className="w-3.5 h-3.5" />}
+                Add to Exam List
+              </button>
+            </div>
+          )}
+
+          {/* Branch: submit for exam list */}
+          {canSubmitForExam(sc) && isBranchUser && (
             <button
-              className="mt-2 flex items-center gap-1.5 text-xs font-bold text-[#c41820] hover:text-[#ed1c24] transition-colors"
+              onClick={handleSubmitForExam}
+              disabled={loading}
+              className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-bold bg-[#1a0a0b] hover:bg-[#2d1214] text-white py-2 rounded-xl transition-colors disabled:opacity-50"
             >
-              <FileText className="w-3.5 h-3.5" /> Book Exam
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+              Submit for Exam List
             </button>
           )}
-          {examBlockedReason(sc) && (
-            <p className="text-xs text-gray-400 italic mt-2">{examBlockedReason(sc)}</p>
+          {isBranchUser && !canSubmitForExam(sc) && submitExamBlockedReason(sc) && (
+            <p className="text-xs text-red-400 italic mt-2">{submitExamBlockedReason(sc)}</p>
           )}
         </div>
       </div>
@@ -305,9 +331,11 @@ export default function StudentEnrollment() {
   const { student, setStudent, selectedCourse, setSelectedCourseId } = useOutletContext();
   const { user } = useAuth();
   const [courses, setCourses] = useState([]);
+  const [activeExams, setActiveExams] = useState([]);
   const [showEnroll, setShowEnroll] = useState(false);
 
   useEffect(() => { coursesAPI.getForRegistration().then(setCourses).catch(() => {}); }, []);
+  useEffect(() => { examsAPI.getAll({ status: "active" }).then(setActiveExams).catch(() => {}); }, []);
 
   const studentCourses = student.student_courses ?? [];
   const active     = studentCourses.filter((sc) => sc.status !== "transferred" && sc.status !== "completed");
@@ -364,6 +392,7 @@ export default function StudentEnrollment() {
                     studentCourses={studentCourses}
                     isBranchUser={isBranchUser}
                     isSuperAdmin={isSuperAdmin}
+                    activeExams={activeExams}
                     onPatch={setStudent}
                     isSelected={selectedCourse?.id === sc.id}
                     onSelect={() => setSelectedCourseId(sc.id)}
@@ -387,6 +416,7 @@ export default function StudentEnrollment() {
                     studentCourses={studentCourses}
                     isBranchUser={isBranchUser}
                     isSuperAdmin={isSuperAdmin}
+                    activeExams={activeExams}
                     onPatch={setStudent}
                     isSelected={selectedCourse?.id === sc.id}
                     onSelect={() => setSelectedCourseId(sc.id)}

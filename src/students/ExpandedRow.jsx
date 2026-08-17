@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import { CourseCard } from "./components/CourseCard";
-import { BookExamInline } from "./components/BookExamInline";
 
 /* ─── Expanded Row ───────────────────────────────────────────────── */
 export function ExpandedRow({
@@ -14,7 +13,7 @@ export function ExpandedRow({
   onSuccess,
   onPatch,
 }) {
-  const [bookingCourse, setBookingCourse] = useState(null);
+  const [bookingCourse] = useState(null); // eslint-disable-line no-unused-vars
   const studentCourses = student.student_courses ?? [];
 
   return (
@@ -41,16 +40,6 @@ export function ExpandedRow({
         </button>
       </div>
 
-      {/* Inline exam booking form */}
-      {bookingCourse && (
-        <BookExamInline
-          sc={bookingCourse}
-          exams={exams}
-          onClose={() => setBookingCourse(null)}
-          onSuccess={onSuccess}
-        />
-      )}
-
       {/* Course cards */}
       {studentCourses.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-gray-400 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
@@ -68,7 +57,6 @@ export function ExpandedRow({
                 isSuperAdmin={isSuperAdmin}
                 courses={courses}
                 studentCourses={studentCourses}
-                onBookExam={setBookingCourse}
                 onSuccess={onSuccess}
                 onPatch={onPatch}
               />

@@ -83,7 +83,7 @@ export const COURSE_STATUS_CONFIG = {
     color: "#0891b2",       from: "#0891b2", to: "#0e7490",
     ring: "ring-cyan-200",
   },
-  exam_booked: {
+  exam_list: {
     label: "Exam List",     short: "Listed",
     variant: "blue",
     color: "#f5c400",       from: "#f5c400", to: "#d4a800",
@@ -150,7 +150,7 @@ export const PIPELINE_STAGES = [
   "pending_pdl",
   "active",
   "pending_exam_booking",
-  "exam_booked",
+  "exam_list",
   "exam_approved",
   "completed",
   "dormant",

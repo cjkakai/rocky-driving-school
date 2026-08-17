@@ -15,8 +15,8 @@ class CourseSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"category": "Category is required."})
         if "class_name" in data and not data["class_name"].strip():
             raise serializers.ValidationError({"class_name": "Class name is required."})
-        if "lessons" in data and not data["lessons"].strip():
-            raise serializers.ValidationError({"lessons": "Lessons is required."})
+        if "lessons" in data and data.get("lessons", 0) < 0:
+            raise serializers.ValidationError({"lessons": "Lessons must be 0 or more."})
         if "amount" in data and amount is not None and amount <= 0:
             raise serializers.ValidationError({"amount": "Amount must be greater than 0."})
         if "max_discount" in data and max_discount is not None and max_discount < 0:
@@ -82,7 +82,7 @@ class StudentCourseSerializer(serializers.ModelSerializer):
         pdl = obj.pdl_bookings.filter(status="approved").order_by("-approved_at").first()
         if not pdl:
             return "none"
-        if pdl.approved_at and timezone.now() > pdl.approved_at + timedelta(days=120):
+        if pdl.approved_at and timezone.now() > pdl.approved_at + timedelta(days=90):
             return "expired"
         return "active"
 

@@ -20,19 +20,28 @@ export function canBookPdl(sc) {
   );
 }
 
-export function canBookExam(sc) {
+export function canSubmitForExam(sc) {
   if (sc.is_refresher_course) return false;
   const { balance } = computeCourseBalance(sc);
-  return (
-    (sc.status === "pending_exam_booking" || sc.status === "retake_booked") &&
-    balance <= 0
-  );
+  if (sc.status === "retake_booked") return balance <= 0;
+  if (sc.status === "active") {
+    return (
+      balance <= 0 &&
+      sc.pdl_state === "active" &&
+      sc.lessons_complete === true
+    );
+  }
+  return false;
 }
 
-export function examBlockedReason(sc) {
-  if (!["pending_exam_booking", "retake_booked"].includes(sc.status)) return null;
+export function submitExamBlockedReason(sc) {
+  if (![ "active", "retake_booked" ].includes(sc.status)) return null;
   const { balance } = computeCourseBalance(sc);
-  if (balance > 0) return "Clear balance to book exam";
+  if (balance > 0) return "Clear balance to submit for exam list";
+  if (sc.status === "active") {
+    if (sc.pdl_state !== "active") return "PDL must be active";
+    if (sc.lessons_complete === false) return "All lessons must be completed";
+  }
   return null;
 }
 
@@ -58,9 +67,9 @@ export function branchPrimaryAction(student) {
   if (student?.status === "offloaded") return { kind: "enroll", label: "Enroll" };
   const courses = student?.student_courses ?? [];
   if (courses.some((sc) => sc.status === "pending_pdl"))
-    return { kind: "book-pdl", label: "Book PDL" };
-  if (courses.some((sc) => sc.status === "pending_exam_booking" || sc.status === "retake_booked"))
-    return { kind: "book-exam", label: "Book Exam" };
+    return { kind: "submit-pdl", label: "Submit for PDL Approval" };
+  if (courses.some((sc) => sc.status === "active" || sc.status === "retake_booked"))
+    return { kind: "submit-exam", label: "Submit for Exam List" };
   if (courses.some((sc) => sc.status === "dormant"))
     return { kind: "reactivate", label: "Reactivate" };
   return { kind: "none", label: "—" };

@@ -20,4 +20,6 @@ export const studentCoursesAPI = {
     request(`/api/student-courses/${id}/mark_completed/`, { method: "POST" }),
   transferCourse: (id, data) =>
     request(`/api/student-courses/${id}/transfer_course/`, { method: "POST", body: JSON.stringify(data) }),
+  submitForExam: (id) =>
+    request(`/api/student-courses/${id}/submit_for_exam/`, { method: "POST" }),
 };

@@ -90,7 +90,6 @@ export default function StudentCourses() {
                 isSuperAdmin={user?.role === "super_admin"}
                 courses={courses}
                 studentCourses={studentCourses}
-                onBookExam={() => {}}
                 onSuccess={refresh}
                 onPatch={patchStudent}
               />

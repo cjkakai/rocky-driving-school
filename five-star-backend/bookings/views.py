@@ -12,7 +12,7 @@ from .models import PDLBooking, Exam, ExamBooking, ExamResult
 from .serializers import PDLBookingSerializer, ExamSerializer, ExamBookingSerializer, ExamResultSerializer
 from students.lifecycle import (
     has_min_payment, get_course_pdl, is_pdl_expired,
-    activate_course_on_pdl_approval, check_and_apply_pdl_expiry,
+    activate_course_on_pdl_approval,
     sync_student_status, apply_exam_result,
 )
 
@@ -331,39 +331,19 @@ class ExamBookingViewSet(viewsets.ModelViewSet):
             raise ValidationError({"student_course": "This field is required."})
 
         exam = serializer.validated_data.get("exam")
-        if exam and exam.status == "closed":
-            raise ValidationError({"exam": "Cannot book a closed exam."})
+        if not exam:
+            raise ValidationError({"exam": "An exam list must be selected."})
+        if exam.status == "closed":
+            raise ValidationError({"exam": "Cannot add a student to a closed exam."})
 
-        check_and_apply_pdl_expiry(student_course)
-        student_course.refresh_from_db()
-
-        # Allow booking from pending_exam_booking or retake_booked
-        bookable_statuses = ("pending_exam_booking", "retake_booked")
-        if student_course.status not in bookable_statuses:
+        # Person 1 (HQ) assigns students who are pending_exam_booking
+        if student_course.status != "pending_exam_booking":
             raise ValidationError(
-                {"student_course": f"Course must be ready for exam booking (current: {student_course.status})."}
+                {"student_course": f"Student must be in 'Pending Exam' status (current: {student_course.status})."}
             )
-
-        agreed = student_course.amount_agreed or 0
-        paid = sum(p.amount for p in student_course.payments.filter(status="completed"))
-        if agreed - paid > 0:
-            raise ValidationError(
-                {"student_course": "Balance must be cleared before booking an exam."}
-            )
-
-        # Reuse existing pending booking (exam=null) from a previous failed attempt
-        existing = student_course.exam_bookings.filter(status="pending", exam__isnull=True).first()
-        if existing:
-            existing.exam = exam
-            existing.booked_by = self.request.user
-            existing.save(update_fields=["exam", "booked_by", "updated_at"])
-            student_course.status = "exam_booked"
-            student_course.save(update_fields=["status", "updated_at"])
-            sync_student_status(student_course.student)
-            return Response(ExamBookingSerializer(existing, context={"request": self.request}).data, status=status.HTTP_201_CREATED)
 
         serializer.save(booked_by=self.request.user, student=student_course.student)
-        student_course.status = "exam_booked"
+        student_course.status = "exam_list"
         student_course.save(update_fields=["status", "updated_at"])
         sync_student_status(student_course.student)
 
@@ -371,11 +351,12 @@ class ExamBookingViewSet(viewsets.ModelViewSet):
     def approve(self, request, pk=None):
         booking = self.get_object()
         booking.status = "confirmed"
+        booking.approved_by = request.user
+        booking.approved_at = timezone.now()
         booking.save()
-        # Update course status to exam_approved
         if booking.student_course:
             sc = booking.student_course
-            if sc.status == "exam_booked":
+            if sc.status == "exam_list":
                 sc.status = "exam_approved"
                 sc.save(update_fields=["status", "updated_at"])
                 sync_student_status(sc.student)
@@ -403,7 +384,7 @@ class ExamBookingViewSet(viewsets.ModelViewSet):
         booking.delete()
 
         # Reset course back to pending_exam_booking so branch can rebook
-        if sc and sc.status in ("exam_booked", "exam_approved"):
+        if sc and sc.status in ("exam_list", "exam_approved"):
             sc.status = "pending_exam_booking"
             sc.save(update_fields=["status", "updated_at"])
             sync_student_status(sc.student)

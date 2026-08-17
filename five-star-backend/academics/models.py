@@ -5,7 +5,7 @@ from django.utils import timezone
 class Course(models.Model):
     category = models.CharField(max_length=255)
     class_name = models.CharField(max_length=100)
-    lessons = models.CharField(max_length=255)
+    lessons = models.PositiveSmallIntegerField(default=0)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     max_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_refresher_course = models.BooleanField(default=False)
@@ -23,7 +23,7 @@ class StudentCourse(models.Model):
         ("pending_pdl",          "Pending PDL"),
         ("active",               "Active"),
         ("pending_exam_booking", "Pending Exam"),
-        ("exam_booked",          "Exam List"),
+        ("exam_list",            "Exam List"),
         ("exam_approved",        "Exam Approved"),
         ("failed",               "Failed"),
         ("retake_booked",        "Retake Booked"),

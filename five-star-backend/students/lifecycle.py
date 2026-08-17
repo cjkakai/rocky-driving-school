@@ -10,7 +10,7 @@ RETAKE_FAILURE_PENALTY = 3000
 # Statuses that mean "still in progress" (not terminal)
 ACTIVE_STATUSES = {
     "onboarded", "pending_pdl", "active",
-    "pending_exam_booking", "exam_booked", "exam_approved",
+    "pending_exam_booking", "exam_list", "exam_approved",
     "failed", "retake_booked",
 }
 DORMANT_STATUS = "dormant"
@@ -74,25 +74,28 @@ def has_full_payment(student_course):
 # ── PDL approval → course activation ─────────────────────────────────────────
 
 def activate_course_on_pdl_approval(student_course):
-    """
-    Called when the PDL for a specific StudentCourse is approved.
-    pending_pdl → active, then immediately re-evaluate payment threshold
-    so that students who already paid in full skip straight to pending_exam_booking.
-    """
+    """Called when the PDL for a specific StudentCourse is approved. pending_pdl → active."""
     if student_course.status == "pending_pdl":
         student_course.status = "active"
         student_course.save(update_fields=["status", "updated_at"])
         sync_student_status(student_course.student)
-        # Re-evaluate: if balance is already cleared, advance to pending_exam_booking
-        on_payment_completed(student_course)
 
 
 # ── Payment-triggered transitions ─────────────────────────────────────────────
 
+def has_lessons_complete(student_course):
+    """True if completed lessons >= course required lessons."""
+    required = student_course.course.lessons or 0
+    if required == 0:
+        return True
+    return student_course.lessons.filter(status="completed").count() >= required
+
+
 def on_payment_completed(student_course):
     """
     Called after a payment is recorded as completed.
-    Handles automatic status transitions triggered by payment thresholds.
+    Only handles onboarded → pending_pdl / active transitions.
+    active → pending_exam_booking is now triggered explicitly by branch via submit_for_exam.
     """
     sc = student_course
     if sc.status == "onboarded":
@@ -106,16 +109,6 @@ def on_payment_completed(student_course):
                 sc.status = "pending_pdl"
                 sc.save(update_fields=["status", "updated_at"])
                 sync_student_status(sc.student)
-    elif sc.status == "active" and not sc.course.is_refresher_course:
-        if has_full_payment(sc):
-            sc.status = "pending_exam_booking"
-            sc.save(update_fields=["status", "updated_at"])
-            sync_student_status(sc.student)
-    elif sc.status == "retake_booked":
-        if has_full_payment(sc):
-            sc.status = "pending_exam_booking"
-            sc.save(update_fields=["status", "updated_at"])
-            sync_student_status(sc.student)
 
 
 # ── Student status aggregation ────────────────────────────────────────────────

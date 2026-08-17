@@ -97,9 +97,9 @@ function NextActionCell({ student, isBranchUser, isSuperAdmin, onEnroll, onAppro
     );
 
   const toneClass = {
-    "book-pdl":  "text-amber-600 bg-amber-50 border-amber-200",
-    "book-exam": "text-green-700 bg-green-50 border-green-200",
-    reactivate:  "text-orange-600 bg-orange-50 border-orange-200",
+    "submit-pdl":  "text-amber-600 bg-amber-50 border-amber-200",
+    "submit-exam": "text-green-700 bg-green-50 border-green-200",
+    reactivate:    "text-orange-600 bg-orange-50 border-orange-200",
   };
   return (
     <span className={`text-[11px] font-semibold italic border px-2 py-0.5 rounded-full ${toneClass[action.kind] ?? "text-gray-500"}`}>
