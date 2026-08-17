@@ -35,7 +35,7 @@ export default function Sidebar() {
     <aside
       className={`
         fixed left-0 top-16 bottom-0
-        bg-sidebar text-sidebar-foreground
+        bg-sidebar text-sidebar-foreground border-r border-sidebar-border
         transition-[width,transform] duration-200 z-40 overflow-y-auto flex flex-col will-change-transform
         ${isCollapsed ? "w-[70px]" : "w-60"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
@@ -69,8 +69,8 @@ export default function Sidebar() {
                 onClick={closeMobileSidebar}
                 end={item.path === "/dashboard"}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 py-3 rounded-lg transition-all
-                  ${isActive ? "bg-primary text-white" : "hover:bg-sidebar-accent"}
+                  `flex items-center gap-3 py-3 rounded-lg transition-all relative
+                  ${isActive ? "bg-white text-[#c41820] font-semibold" : "text-white/80 hover:bg-white/15 hover:text-white"}
                   ${isCollapsed ? "justify-center px-0" : "px-3"}`
                 }
               >

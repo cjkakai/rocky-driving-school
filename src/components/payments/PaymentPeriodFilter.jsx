@@ -29,24 +29,22 @@ export function PaymentPeriodFilter({ dateFrom, dateTo, onChange }) {
   const clear = () => onChange({ dateFrom: "", dateTo: "" });
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 rounded-2xl border border-blue-100 shadow-sm px-4 py-3">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
       <div className="flex flex-wrap items-center gap-3">
-        {/* Label */}
         <div className="flex items-center gap-1.5">
-          <CalendarDays className="w-4 h-4 text-blue-500" />
-          <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Period</span>
+          <CalendarDays className="w-4 h-4 text-gray-400" />
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Period</span>
         </div>
 
-        {/* Quick pills */}
-        <div className="flex gap-1 bg-blue-100/60 rounded-xl p-1">
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
           {QUICK.map((q) => (
             <button
               key={q.label}
               onClick={() => applyQuick(q)}
               className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeQuick === q.label
-                  ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm shadow-blue-200"
-                  : "text-blue-700/70 hover:text-blue-800"
+                  ? "bg-[#1a0a0b] text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-800"
               }`}
             >
               {q.label}
@@ -54,28 +52,27 @@ export function PaymentPeriodFilter({ dateFrom, dateTo, onChange }) {
           ))}
         </div>
 
-        <div className="w-px h-5 bg-blue-100" />
+        <div className="w-px h-5 bg-gray-200" />
 
-        {/* Custom range */}
         <div className="flex items-center gap-1.5">
           <input
             type="date"
             value={dateFrom}
             onChange={(e) => onChange({ dateFrom: e.target.value, dateTo })}
-            className="px-3 py-1.5 border border-blue-100 rounded-xl text-xs bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+            className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all"
           />
-          <span className="text-blue-300 text-xs">→</span>
+          <span className="text-gray-300 text-xs">→</span>
           <input
             type="date"
             value={dateTo}
             min={dateFrom}
             onChange={(e) => onChange({ dateFrom, dateTo: e.target.value })}
-            className="px-3 py-1.5 border border-blue-100 rounded-xl text-xs bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+            className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all"
           />
         </div>
 
         {hasFilter && !activeQuick && (
-          <span className="text-xs text-blue-600 font-medium bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">
+          <span className="text-xs text-gray-600 font-medium bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-full">
             Custom Range
           </span>
         )}

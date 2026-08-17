@@ -1,105 +1,67 @@
 import { formatDistanceToNow } from "date-fns";
-import {
-  GraduationCap,
-  DollarSign,
-  BookOpen,
-  CheckCircle,
-} from "lucide-react";
+import { GraduationCap, DollarSign, BookOpen, CheckCircle } from "lucide-react";
 
 const ACTIVITY_TYPES = {
-  student_registered: {
-    icon: GraduationCap,
-    label: "Registered",
-    color:
-      "bg-blue-100 text-blue-700 border border-blue-200",
-  },
-
-  payment_received: {
-    icon: DollarSign,
-    label: "Payment",
-    color:
-      "bg-green-100 text-green-700 border border-green-200",
-  },
-
-  pdl_booked: {
-    icon: BookOpen,
-    label: "PDL",
-    color:
-      "bg-purple-100 text-purple-700 border border-purple-200",
-  },
-
-  exam_scheduled: {
-    icon: CheckCircle,
-    label: "Exam",
-    color:
-      "bg-orange-100 text-orange-700 border border-orange-200",
-  },
+  student_registered: { icon: GraduationCap, color: "#c41820",  tint: "#fdf1f1",  label: "Registered" },
+  payment_received:   { icon: DollarSign,    color: "#059669",  tint: "#ecfdf5",  label: "Payment"    },
+  pdl_booked:         { icon: BookOpen,      color: "#b8960a",  tint: "#fffdf0",  label: "PDL"        },
+  exam_scheduled:     { icon: CheckCircle,   color: "#d97706",  tint: "#fffbeb",  label: "Exam"       },
 };
 
-export function ActivityFeed({
-  activities,
-  loading,
-  error,
-}) {
-  if (loading)
-    return (
-      <div className="h-[320px] flex items-center justify-center text-gray-400 text-sm">
-        Loading activities...
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="h-[320px] flex items-center justify-center text-red-400 text-sm">
-        {error}
-      </div>
-    );
-
-  if (!activities?.length)
-    return (
-      <div className="h-[320px] flex items-center justify-center text-gray-400 text-sm">
-        No recent activities
-      </div>
-    );
+function ActivityItem({ activity, isLast }) {
+  const cfg = ACTIVITY_TYPES[activity.type] ?? ACTIVITY_TYPES.student_registered;
+  const Icon = cfg.icon;
 
   return (
-    <div className="space-y-4">
-      {activities.map((activity, idx) => {
-        const config =
-          ACTIVITY_TYPES[activity.type] ??
-          ACTIVITY_TYPES.student_registered;
+    <div className="flex gap-3.5">
+      <div className="flex flex-col items-center">
+        <div
+          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 z-10"
+          style={{ background: cfg.tint, color: cfg.color }}
+        >
+          <Icon className="w-4 h-4" />
+        </div>
+        {!isLast && <div className="w-px flex-1 bg-gray-100 my-1" />}
+      </div>
 
-        const Icon = config.icon;
-
-        return (
-          <div
-            key={idx}
-            className="group relative flex items-start gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md hover:border-blue-100 hover:-translate-y-0.5"
-          >
-            <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-            <div className={`flex items-center justify-center w-8 h-8 rounded-xl shrink-0 ${config.color}`}>
-              <Icon className="w-4 h-4" />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <p className="text-xs font-bold text-gray-900 truncate">{activity.student_name}</p>
-                <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                  {config.label}
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 leading-relaxed">{activity.description}</p>
-            </div>
-
-            <div className="shrink-0 text-right">
-              <p className="text-[11px] font-medium text-gray-400 whitespace-nowrap">
-                {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-              </p>
-            </div>
+      <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-4"}`}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-gray-800 truncate">{activity.student_name}</p>
+            <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">{activity.description}</p>
           </div>
-        );
-      })}
+          <div className="shrink-0 text-right">
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: cfg.tint, color: cfg.color }}
+            >
+              {cfg.label}
+            </span>
+            <p className="text-[10px] text-gray-300 mt-1 whitespace-nowrap">
+              {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ActivityFeed({ activities, loading, error }) {
+  if (loading)
+    return <div className="py-12 flex items-center justify-center text-gray-400 text-sm">Loading activities...</div>;
+
+  if (error)
+    return <div className="py-12 flex items-center justify-center text-red-400 text-sm">{error}</div>;
+
+  if (!activities?.length)
+    return <div className="py-12 flex items-center justify-center text-gray-400 text-sm">No recent activities</div>;
+
+  return (
+    <div>
+      {activities.map((activity, idx) => (
+        <ActivityItem key={idx} activity={activity} isLast={idx === activities.length - 1} />
+      ))}
     </div>
   );
 }

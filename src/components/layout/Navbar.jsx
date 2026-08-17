@@ -39,7 +39,7 @@ export default function Navbar() {
         </button>
 
         <div className="flex items-center gap-3">
-          <img src="/fiveStarLogo.webp" alt="Rocky" className="w-9 h-9 rounded-lg object-cover shadow-sm" />
+          <img src="/images.png" alt="Rocky" className="w-9 h-9 rounded-lg object-cover shadow-sm" />
           <div>
             <h1 className="font-semibold text-gray-900">Rocky Driving School</h1>
             <p className="text-xs text-muted-foreground">Driving School Management</p>

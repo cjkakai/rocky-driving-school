@@ -58,12 +58,12 @@ const COLOR_MAP = {
     sub: "text-rose-500",
   },
   blue: {
-    bg: "bg-blue-100",
-    border: "border-blue-200",
-    icon: "bg-blue-600 text-white",
-    label: "text-blue-600",
+    bg: "bg-red-50",
+    border: "border-red-100",
+    icon: "bg-[#c41820] text-white",
+    label: "text-[#c41820]",
     value: "text-gray-900",
-    sub: "text-blue-500",
+    sub: "text-[#c41820]",
   },
   amber: {
     bg: "bg-amber-50",

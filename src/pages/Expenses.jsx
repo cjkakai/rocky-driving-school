@@ -76,7 +76,7 @@ export default function Expenses() {
   const hasFilters = filters.dateFrom || filters.dateTo;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/70 to-slate-100 p-6 space-y-6">
+    <div className="min-h-screen bg-[#f8f9fa] p-6 space-y-6">
 
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -85,15 +85,15 @@ export default function Expenses() {
           <p className="text-gray-500 mt-1 text-sm">Revenue, expenses &amp; profitability dashboard</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1 bg-blue-100/60 rounded-xl p-1">
+          <div className="flex gap-1 bg-red-50/60 rounded-xl p-1">
             {QUICK.map((q) => (
               <button
                 key={q.label}
                 onClick={() => applyQuick(q)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeQuick === q.label
-                    ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm shadow-blue-200"
-                    : "text-blue-700/70 hover:text-blue-800"
+                    ? "bg-gradient-to-r from-[#c41820] to-[#ed1c24] text-white shadow-sm shadow-red-200"
+                    : "text-[#c41820]/70 hover:text-[#c41820]"
                 }`}
               >
                 {q.label}
@@ -107,9 +107,9 @@ export default function Expenses() {
       </div>
 
       {/* Date filter bar */}
-      <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 rounded-2xl border border-blue-100 shadow-sm px-4 py-3">
+      <div className="bg-gradient-to-r from-red-50 via-white to-red-50 rounded-2xl border border-red-100 shadow-sm px-4 py-3">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide shrink-0">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#c41820]/70 uppercase tracking-wide shrink-0">
             <SlidersHorizontal className="w-3.5 h-3.5" /> Date Range
           </div>
           <div className="flex items-center gap-1.5">
@@ -117,15 +117,15 @@ export default function Expenses() {
               type="date"
               value={filters.dateFrom}
               onChange={(e) => patchFilters({ dateFrom: e.target.value })}
-              className="px-3 py-1.5 border border-blue-100 rounded-xl text-sm bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+              className="px-3 py-1.5 border border-red-100 rounded-xl text-sm bg-red-50/40 focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-[#c41820] transition-all"
             />
-            <span className="text-blue-300 text-sm">→</span>
+            <span className="text-red-300 text-sm">→</span>
             <input
               type="date"
               value={filters.dateTo}
               min={filters.dateFrom}
               onChange={(e) => patchFilters({ dateTo: e.target.value })}
-              className="px-3 py-1.5 border border-blue-100 rounded-xl text-sm bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+              className="px-3 py-1.5 border border-red-100 rounded-xl text-sm bg-red-50/40 focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-[#c41820] transition-all"
             />
           </div>
           {hasFilters && (
@@ -136,7 +136,7 @@ export default function Expenses() {
               <X className="w-3.5 h-3.5" /> Clear
             </button>
           )}
-          <p className="ml-auto text-xs text-blue-400">Filters apply globally to all sections</p>
+          <p className="ml-auto text-xs text-[#c41820]/50">Filters apply globally to all sections</p>
         </div>
       </div>
 

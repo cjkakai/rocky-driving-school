@@ -7,8 +7,8 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { dashboardAPI } from "../../api/dashboard.api";
 import { fmt } from "../../utils/students.utils";
 
-const COLOR = "#2563eb";
-const GRAD_ID = "revBlueGrad";
+const COLOR = "#c41820";
+const GRAD_ID = "revRockyGrad";
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -44,7 +44,7 @@ export function RevenueChart() {
   const monthLabel = new Date().toLocaleString("default", { month: "long", year: "numeric" });
 
   return (
-    <div className="bg-white rounded-2xl border border-blue-100 shadow-lg shadow-blue-100/40 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-red-100 shadow-lg shadow-red-100/30 overflow-hidden">
       <div className="px-6 pt-5 pb-4 border-b border-gray-50">
         <div>
           <h3 className="font-bold text-gray-900 text-base">Revenue Trend</h3>

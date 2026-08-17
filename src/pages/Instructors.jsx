@@ -18,7 +18,7 @@ function InstructorModal({ open, onClose, onSaved, instructor, branches }) {
         full_name: instructor?.full_name ?? "",
         phone: instructor?.phone ?? "",
         licence_number: instructor?.licence_number ?? "",
-        branch: instructor?.branch ?? (isAdmin ? "" : user?.branch ?? ""),
+        branch: instructor?.branch ?? (isAdmin ? "" : user?.branch_id ?? ""),
       });
       setError("");
     }
@@ -33,7 +33,7 @@ function InstructorModal({ open, onClose, onSaved, instructor, branches }) {
     setSaving(true);
     setError("");
     try {
-      const payload = { ...form, branch: form.branch || user?.branch };
+      const payload = { ...form, branch: form.branch || user?.branch_id };
       if (instructor) {
         await instructorsAPI.update(instructor.id, payload);
       } else {

@@ -59,7 +59,7 @@ export function ExpenseTable({ expenses, loading, onEdit, onDelete, apiFilters =
         <button
           onClick={() => exportExcel(apiFilters)}
           disabled={!expenses.length}
-          className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none"
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-[#c41820] text-white rounded-xl text-xs font-semibold shadow-sm hover:bg-[#ed1c24] hover:shadow-md active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none"
         >
           <Download className="w-3.5 h-3.5" /> Export Excel
         </button>
@@ -88,7 +88,7 @@ export function ExpenseTable({ expenses, loading, onEdit, onDelete, apiFilters =
             </thead>
             <tbody>
               {expenses.map((e) => (
-                <tr key={e.id} className="border-b border-gray-50 hover:bg-blue-50/40 transition-colors">
+                <tr key={e.id} className="border-b border-gray-50 hover:bg-red-50/30 transition-colors">
                   <td className="px-4 py-3.5 text-gray-600 whitespace-nowrap font-medium">{e.expense_date}</td>
                   <td className="px-4 py-3.5">
                     <TypeBadge type={e.expense_type} />

@@ -1,16 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
-import { GraduationCap, Plus, Loader2, Clock, CheckCircle, Calendar, XCircle } from "lucide-react";
+import { GraduationCap, Plus, Loader2, Clock, CheckCircle, Calendar } from "lucide-react";
+import { RadialBarChart, RadialBar, PolarAngleAxis, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts";
 import { lessonsAPI } from "../../api/lessons.api";
 import { fmtDate } from "../../utils/students.utils";
 import AddLessonModal from "./AddLessonModal";
 
 const STATUS_CONFIG = {
-  completed:  { label: "Completed",  color: "text-green-700 bg-green-50 border-green-200" },
-  scheduled:  { label: "Scheduled",  color: "text-blue-700 bg-blue-50 border-blue-200" },
-  cancelled:  { label: "Cancelled",  color: "text-gray-600 bg-gray-50 border-gray-200" },
-  no_show:    { label: "No Show",    color: "text-red-600 bg-red-50 border-red-200" },
+  completed:  { label: "Completed",  color: "text-emerald-700 bg-emerald-50 border-emerald-100", dot: "#059669" },
+  scheduled:  { label: "Scheduled",  color: "text-blue-700 bg-blue-50 border-blue-100", dot: "#2563eb" },
+  cancelled:  { label: "Cancelled",  color: "text-gray-600 bg-gray-50 border-gray-200", dot: "#6b7280" },
+  no_show:    { label: "No Show",    color: "text-rose-600 bg-rose-50 border-rose-100", dot: "#e11d48" },
 };
+
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function fmtDuration(mins) {
   if (!mins) return "—";
@@ -28,25 +31,37 @@ function fmtTime12(t) {
   return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
+const CHIP = {
+  blue:  "bg-red-50 text-[#c41820]",
+  green: "bg-emerald-50 text-emerald-600",
+  amber: "bg-amber-50 text-amber-600",
+  red:   "bg-rose-50 text-rose-600",
+};
+
 function SummaryCard({ icon: Icon, label, value, color }) {
-  const colors = {
-    blue:   "bg-blue-50 text-blue-600",
-    green:  "bg-green-50 text-green-600",
-    amber:  "bg-amber-50 text-amber-600",
-    red:    "bg-red-50 text-red-600",
-  };
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-3 shadow-sm">
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${colors[color]}`}>
-        <Icon className="w-4 h-4" />
+    <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${CHIP[color]}`}>
+        <Icon className="w-4.5 h-4.5" />
       </div>
       <div>
-        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-        <p className="text-lg font-black text-gray-900">{value}</p>
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">{label}</p>
+        <p className="text-lg font-extrabold text-gray-900">{value}</p>
       </div>
     </div>
   );
 }
+
+const hoursTooltip = ({ active, payload }) => {
+  if (!active || !payload?.length) return null;
+  const p = payload[0].payload;
+  return (
+    <div className="bg-white rounded-lg shadow-lg border border-gray-100 px-3 py-2">
+      <p className="text-xs font-bold text-gray-800">{p.day}</p>
+      <p className="text-xs font-extrabold text-[#c41820]">{fmtDuration(p.minutes)}</p>
+    </div>
+  );
+};
 
 export default function StudentLessons() {
   const { student, setStudent, selectedCourse } = useOutletContext();
@@ -78,6 +93,40 @@ export default function StudentLessons() {
     ? `${Math.floor(summary.total_minutes / 60)}h ${summary.total_minutes % 60}m`
     : "—";
 
+  const pct = summary?.total_required > 0 ? Math.min(100, (summary.completed / summary.total_required) * 100) : 0;
+  const ringData = [{ value: pct, fill: "#c41820" }];
+
+  /* Group completed lessons of the current week by weekday */
+  const weeklyData = useMemo(() => {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sun
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    const totals = WEEKDAYS.map((label, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return { day: label, date: d, minutes: 0, isToday: d.toDateString() === now.toDateString() };
+    });
+
+    lessons.forEach((l) => {
+      if (l.status !== "completed" || !l.date) return;
+      const d = new Date(l.date);
+      if (d < monday || d > sunday) return;
+      const idx = totals.findIndex((t) => t.date.toDateString() === d.toDateString());
+      if (idx >= 0) totals[idx].minutes += l.duration_minutes || 0;
+    });
+
+    return totals;
+  }, [lessons]);
+
+  const weeklyTotalMinutes = weeklyData.reduce((s, d) => s + d.minutes, 0);
+
   return (
     <div className="min-h-full bg-gray-50">
       <div className="p-6 space-y-5">
@@ -89,53 +138,93 @@ export default function StudentLessons() {
           <SummaryCard icon={Clock}         label="Total Hours" value={totalHours} color="blue" />
         </div>
 
-        {/* Progress bar */}
-        {summary?.total_required > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-gray-700">Lesson Progress</span>
-              <span className="text-sm font-bold text-gray-900">
-                {summary.completed} / {summary.total_required}
-              </span>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          {/* Progress ring */}
+          {summary?.total_required > 0 && (
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center gap-5">
+                <div className="relative w-16 h-16 shrink-0">
+                  <RadialBarChart
+                    width={64} height={64} cx="50%" cy="50%"
+                    innerRadius="78%" outerRadius="100%"
+                    data={ringData} startAngle={90} endAngle={-270}
+                  >
+                    <PolarAngleAxis type="number" domain={[0, 100]} tick={false} axisLine={false} />
+                    <RadialBar background={{ fill: "#f1f2f4" }} dataKey="value" cornerRadius={20} isAnimationActive={false} />
+                  </RadialBarChart>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xs font-black text-gray-900">{Math.round(pct)}%</span>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-gray-800">Lesson Progress</span>
+                    <span className="text-sm font-extrabold text-gray-900">
+                      {summary.completed} / {summary.total_required}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2.5">
+                    <div className="h-2.5 rounded-full bg-[#c41820] transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    {summary.remaining} lesson{summary.remaining !== 1 ? "s" : ""} remaining
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2.5">
-              <div
-                className="h-2.5 rounded-full bg-blue-600 transition-all"
-                style={{ width: `${Math.min(100, (summary.completed / summary.total_required) * 100)}%` }}
-              />
+          )}
+
+          {/* Weekly training hours — bar chart */}
+          <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 ${summary?.total_required > 0 ? "lg:col-span-3" : "lg:col-span-5"}`}>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-bold text-gray-800">Weekly Training Hours</p>
+              <span className="text-xs font-semibold text-gray-400">{fmtDuration(weeklyTotalMinutes)} this week</span>
             </div>
-            <p className="text-xs text-gray-400 mt-1.5">
-              {summary.remaining} lesson{summary.remaining !== 1 ? "s" : ""} remaining to complete the course
-            </p>
+            <div style={{ width: "100%", height: 180 }} className="mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyData} margin={{ top: 8, right: 4, bottom: 0, left: -20 }} barCategoryGap={20}>
+                  <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9ca3af", fontWeight: 600 }} axisLine={false} tickLine={false} />
+                  <YAxis hide />
+                  <Tooltip content={hoursTooltip} cursor={{ fill: "rgba(196,24,32,0.04)" }} />
+                  <Bar dataKey="minutes" radius={[8, 8, 8, 8]} maxBarSize={28} isAnimationActive={false}>
+                    {weeklyData.map((d, i) => (
+                      <Cell key={i} fill={d.isToday ? "#c41820" : d.minutes > 0 ? "#f4b8bc" : "#f1f2f4"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Header row */}
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-gray-900">Lesson History</h2>
+          <h2 className="text-base font-extrabold text-gray-900 tracking-tight">Lesson History</h2>
           <button
             onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-[#c41820] hover:bg-[#ed1c24] text-white rounded-xl transition-all shadow-sm shadow-red-900/10"
           >
             <Plus className="w-4 h-4" /> Add Lesson
           </button>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20 gap-3 text-gray-400">
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin text-[#c41820]" />
               <span className="text-sm">Loading lessons…</span>
             </div>
           ) : lessons.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
-              <GraduationCap className="w-10 h-10 opacity-30" />
+              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-[#c41820]" />
+              </div>
               <p className="font-semibold text-gray-500">No lessons recorded yet.</p>
               <p className="text-sm text-gray-400">Add the student's first lesson to start tracking practical training.</p>
               <button
                 onClick={() => setShowAdd(true)}
-                className="mt-1 flex items-center gap-2 px-4 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all"
+                className="mt-1 flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-[#c41820] hover:bg-[#ed1c24] text-white rounded-xl transition-all"
               >
                 <Plus className="w-4 h-4" /> Add Lesson
               </button>
@@ -144,9 +233,9 @@ export default function StudentLessons() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
+                  <tr className="bg-gray-50/80 border-b border-gray-100">
                     {["#", "Date", "Time", "Duration", "Course", "Instructor", "Vehicle", "Type", "Status", "Notes"].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
                     ))}
@@ -156,7 +245,7 @@ export default function StudentLessons() {
                   {lessons.map((lesson, i) => {
                     const cfg = STATUS_CONFIG[lesson.status] ?? STATUS_CONFIG.completed;
                     return (
-                      <tr key={lesson.id} className={`border-b border-gray-100 ${i % 2 === 1 ? "bg-gray-50/40" : ""}`}>
+                      <tr key={lesson.id} className={`border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${i % 2 === 1 ? "bg-gray-50/30" : ""}`}>
                         <td className="px-4 py-3 text-xs text-gray-400 tabular-nums">{i + 1}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-xs font-semibold text-gray-700">
                           {fmtDate(lesson.date)}
@@ -180,7 +269,8 @@ export default function StudentLessons() {
                           {lesson.lesson_type?.replace("_", " ")}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${cfg.color}`}>
+                          <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${cfg.color}`}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: cfg.dot }} />
                             {cfg.label}
                           </span>
                         </td>

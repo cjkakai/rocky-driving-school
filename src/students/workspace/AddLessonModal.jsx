@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 import { lessonsAPI, instructorsAPI } from "../../api/lessons.api";
 import { vehiclesAPI } from "../../api/vehicles.api";
@@ -23,15 +23,15 @@ const STATUSES = [
 function Field({ label, required, children }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-600 mb-1">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+        {label}{required && <span className="text-[#c41820] ml-0.5">*</span>}
       </label>
       {children}
     </div>
   );
 }
 
-const inputCls = "w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 bg-white";
+const inputCls = "w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-[#c41820] bg-white transition-colors";
 
 export default function AddLessonModal({ student, studentCourses = [], selectedCourse, onClose, onSuccess }) {
   const [instructors, setInstructors] = useState([]);
@@ -102,10 +102,11 @@ export default function AddLessonModal({ student, studentCourses = [], selectedC
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto z-10">
+      <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto z-10">
+
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-base font-bold text-gray-900">Add Lesson</h2>
             <p className="text-xs text-gray-400 mt-0.5">{student.full_name} · {student.admission_number}</p>
@@ -141,7 +142,11 @@ export default function AddLessonModal({ student, studentCourses = [], selectedC
               <input type="time" value={form.end_time} onChange={(e) => set("end_time", e.target.value)} required className={inputCls} />
             </Field>
           </div>
-          {duration && <p className="text-xs text-blue-600 font-semibold -mt-2">Duration: {duration}</p>}
+          {duration && (
+            <div className="inline-flex items-center gap-1.5 -mt-2 text-xs font-bold text-[#c41820] bg-red-50 border border-red-100 px-2.5 py-1 rounded-full">
+              <Clock className="w-3 h-3" /> Duration: {duration}
+            </div>
+          )}
 
           {/* Type & Status */}
           <div className="grid grid-cols-2 gap-3">
@@ -193,11 +198,11 @@ export default function AddLessonModal({ student, studentCourses = [], selectedC
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 text-sm font-semibold border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-600">
+              className="flex-1 py-2.5 text-sm font-bold border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-600">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 py-2.5 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+              className="flex-1 py-2.5 text-sm font-bold bg-[#c41820] hover:bg-[#ed1c24] text-white rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm shadow-red-900/10">
               {saving && <Loader2 className="w-4 h-4 animate-spin" />}
               {saving ? "Saving…" : "Save Lesson"}
             </button>

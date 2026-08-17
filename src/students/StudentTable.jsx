@@ -78,7 +78,7 @@ function NextActionCell({ student, isBranchUser, isSuperAdmin, onEnroll, onAppro
     return (
       <button
         onClick={() => onApproveExam({ id: action.resourceId, studentId: student.id })}
-        className="flex items-center gap-1.5 text-xs font-bold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-1.5 rounded-lg transition-all shadow-sm whitespace-nowrap"
+        className="flex items-center gap-1.5 text-xs font-bold bg-gradient-to-r from-[#c41820] to-[#ed1c24] hover:from-[#ed1c24] hover:to-[#ff3d44] text-white px-3 py-1.5 rounded-lg transition-all shadow-sm whitespace-nowrap"
       >
         <CheckCircle className="w-3 h-3" />
         {action.label}
@@ -89,7 +89,7 @@ function NextActionCell({ student, isBranchUser, isSuperAdmin, onEnroll, onAppro
     return (
       <button
         onClick={() => onEnroll(student)}
-        className="flex items-center gap-1.5 text-xs font-bold border border-blue-300 text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all whitespace-nowrap"
+        className="flex items-center gap-1.5 text-xs font-bold border border-[#c41820] text-[#c41820] hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all whitespace-nowrap"
       >
         <BookOpen className="w-3 h-3" />
         {action.label}
@@ -139,7 +139,7 @@ function StudentRow({
       className={`
         border-b border-gray-200 transition-all duration-150
         ${isEvenRow ? "bg-gray-50/40" : "bg-white"}
-        hover:bg-blue-50/30
+        hover:bg-[#c41820]/5
       `}
     >
       {/* Reg date */}
@@ -230,7 +230,7 @@ function StudentRow({
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleView}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[#1a0a0b] hover:bg-[#2d1214] text-white rounded-lg transition-all shadow-sm whitespace-nowrap"
           >
             <Eye className="w-3.5 h-3.5" /> View
           </button>
@@ -239,7 +239,7 @@ function StudentRow({
               <button
                 onClick={() => onEdit?.(student)}
                 title="Edit student"
-                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-[#c41820] hover:bg-red-50 transition-all"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
@@ -290,7 +290,7 @@ function Pagination({ page, totalPages, totalCount, pageSize, onPageChange }) {
         <button
           disabled={page === 1}
           onClick={() => onPageChange(page - 1)}
-          className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 rounded-lg bg-[#1a0a0b] text-white hover:bg-[#3d1a1c] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -304,7 +304,7 @@ function Pagination({ page, totalPages, totalCount, pageSize, onPageChange }) {
               onClick={() => onPageChange(item.page)}
               className={`min-w-[32px] h-8 text-xs font-bold rounded-lg transition-all ${
                 item.page === page
-                  ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-sm"
+                  ? "bg-[#1a0a0b] text-white shadow-sm"
                   : "border border-gray-200 text-gray-600 hover:bg-gray-100"
               }`}
             >
@@ -316,7 +316,7 @@ function Pagination({ page, totalPages, totalCount, pageSize, onPageChange }) {
         <button
           disabled={page === totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 rounded-lg bg-[#1a0a0b] text-white hover:bg-[#3d1a1c] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -336,7 +336,7 @@ export function StudentTable({
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-gray-400 gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg animate-pulse">
+        <div className="w-10 h-10 rounded-2xl bg-[#1a0a0b] flex items-center justify-center shadow-lg animate-pulse">
           <Loader2 className="w-5 h-5 text-white animate-spin" />
         </div>
         <p className="text-sm font-medium text-gray-500">Loading students…</p>
@@ -357,11 +357,11 @@ export function StudentTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white" style={{ boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 30px -4px rgba(0,0,0,0.08)" }}>
+    <div className="overflow-hidden border border-gray-200 bg-white" style={{ boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 30px -4px rgba(0,0,0,0.08)" }}>
       <div className="overflow-x-auto">
         <table className="w-full text-[0.875rem]">
           <thead>
-            <tr style={{ background: "linear-gradient(135deg, #0f172a, #1e3a5f)" }}>
+            <tr style={{ background: "#1a0a0b" }}>
               <TH>Reg. Date</TH>
               <TH>Adm. No</TH>
               <TH>Branch</TH>

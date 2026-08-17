@@ -86,14 +86,14 @@ export const COURSE_STATUS_CONFIG = {
   exam_booked: {
     label: "Exam List",     short: "Listed",
     variant: "blue",
-    color: "#2563eb",       from: "#2563eb", to: "#1d4ed8",
-    ring: "ring-blue-200",
+    color: "#f5c400",       from: "#f5c400", to: "#d4a800",
+    ring: "ring-yellow-200",
   },
   exam_approved: {
     label: "Exam Approved", short: "Approved",
     variant: "blue",
-    color: "#2563eb",       from: "#2563eb", to: "#1d4ed8",
-    ring: "ring-blue-200",
+    color: "#ffd700",       from: "#ffd700", to: "#f5c400",
+    ring: "ring-yellow-200",
   },
   failed: {
     label: "Failed",        short: "Failed",
@@ -110,8 +110,8 @@ export const COURSE_STATUS_CONFIG = {
   completed: {
     label: "Completed",     short: "Done",
     variant: "blue",
-    color: "#1d4ed8",       from: "#1d4ed8", to: "#1e40af",
-    ring: "ring-blue-200",
+    color: "#333333",       from: "#333333", to: "#111111",
+    ring: "ring-gray-200",
   },
   transferred: {
     label: "Transferred",   short: "Transferred",
@@ -131,8 +131,8 @@ export const COURSE_STATUS_CONFIG = {
 const COURSE_STATUS_DEFAULT = {
   label: "—",    short: "—",
   variant: "gray",
-  color: "#94a3b8", from: "#1e3a5f", to: "#0f2340",
-  ring: "ring-blue-100",
+  color: "#94a3b8", from: "#333333", to: "#111111",
+  ring: "ring-gray-100",
 };
 
 /** Look up a status entry, falling back to the default. */

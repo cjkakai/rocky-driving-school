@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { X, ChevronDown, Check, Search } from "lucide-react";
-import { Input, Select } from "../../ui";
+import { Input } from "../../ui";
 import { SearchableSelect } from "../../ui/SearchableSelect";
 
 const statusOptions = [
@@ -12,10 +12,10 @@ const statusOptions = [
 const channelOptions = [
   { label: "All",           value: "" },
   { label: "M-PESA",        value: "MPESA",         badgeClass: "bg-green-50 text-green-800 border border-green-200" },
-  { label: "STK Push",      value: "STK PUSH",      badgeClass: "bg-blue-50 text-blue-800 border border-blue-200" },
-  { label: "Pesalink",      value: "PESALINK",      badgeClass: "bg-violet-50 text-violet-800 border border-violet-200" },
+  { label: "STK Push",      value: "STK PUSH",      badgeClass: "bg-gray-100 text-gray-700 border border-gray-200" },
+  { label: "Pesalink",      value: "PESALINK",      badgeClass: "bg-gray-100 text-gray-700 border border-gray-200" },
   { label: "Agent Deposit", value: "AGENT DEPOSIT", badgeClass: "bg-amber-50 text-amber-800 border border-amber-200" },
-  { label: "Bank",          value: "BANK",          badgeClass: "bg-slate-100 text-slate-700 border border-slate-200" },
+  { label: "Bank",          value: "BANK",          badgeClass: "bg-gray-100 text-gray-700 border border-gray-200" },
   { label: "Unknown",       value: "UNKNOWN",       badgeClass: "bg-gray-100 text-gray-600 border border-gray-200" },
 ];
 
@@ -40,11 +40,11 @@ function FilterDropdown({ label, options, value, onChange }) {
   }, []);
 
   return (
-    <div className="relative bg-blue-100/60 rounded-xl p-1" ref={ref}>
+    <div className="relative bg-gray-100 rounded-xl p-1" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm shadow-blue-200 transition-all"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1a0a0b] text-white shadow-sm transition-all"
       >
         <span className="opacity-75">{label}:</span>
         <span>{active.label}</span>
@@ -93,12 +93,12 @@ export function PaymentsFilters({
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 rounded-2xl border border-blue-100 shadow-sm px-4 py-3 space-y-3">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 space-y-3">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           <Input
-            className="pl-9 border-blue-100 bg-blue-50/40 focus:ring-blue-200 focus:border-blue-300"
+            className="pl-9 border-gray-200 bg-gray-50/60 focus:ring-gray-200 focus:border-gray-300"
             placeholder="Search by reference, M-PESA ref, name or admission number..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -133,21 +133,19 @@ export function PaymentsFilters({
           onChange={(v) => { setFilterChannel(v); setPage(1); }}
         />
 
-        <div className="w-px h-5 bg-blue-100 mx-1" />
+        <div className="w-px h-5 bg-gray-200 mx-1" />
 
-        <div className="flex gap-1 bg-blue-100/60 rounded-xl p-1">
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
           {typePills.map(p => (
             <button
               key={p.value}
               type="button"
               onClick={() => { setFilterPaymentType(p.value); setPage(1); }}
-              className={`
-                px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                ${filterPaymentType === p.value
-                  ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm shadow-blue-200"
-                  : "text-blue-700/70 hover:text-blue-800"
-                }
-              `}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                filterPaymentType === p.value
+                  ? "bg-[#1a0a0b] text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-800"
+              }`}
             >
               {p.label}
             </button>

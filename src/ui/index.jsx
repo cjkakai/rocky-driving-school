@@ -69,7 +69,7 @@ export function Select({ value, onChange, placeholder, children, className = "",
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-red-300 transition-colors appearance-none cursor-pointer ${className}`}
+      className={`w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a0a0b]/20 focus:border-[#1a0a0b] transition-colors appearance-none cursor-pointer ${className}`}
       {...props}
     >
       {placeholder && <option value="">{placeholder}</option>}
@@ -81,7 +81,7 @@ export function Select({ value, onChange, placeholder, children, className = "",
 export function Input({ className = "", ...props }) {
   return (
     <input
-      className={`w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-red-300 transition-colors placeholder-gray-400 ${className}`}
+      className={`w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a0a0b]/20 focus:border-[#1a0a0b] transition-colors placeholder-gray-400 ${className}`}
       {...props}
     />
   );
@@ -98,10 +98,10 @@ export function Label({ children, htmlFor }) {
 const BTN_BASE = "inline-flex items-center gap-2 font-medium rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
 const BTN_SIZES = { sm: "px-3 py-1.5 text-xs", md: "px-5 py-2 text-sm", lg: "px-6 py-2.5 text-sm" };
 const BTN_VARIANTS = {
-  primary: "bg-[#E30613] hover:bg-[#c40510] text-white focus:ring-red-300 shadow-sm",
+  primary: "bg-[#c41820] hover:bg-[#a01018] text-white focus:ring-[#c41820]/30 shadow-sm",
   outline: "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-200",
   green: "bg-white border border-green-500 text-green-700 hover:bg-green-50 focus:ring-green-200",
-  danger: "bg-[#E30613] hover:bg-[#c40510] text-white focus:ring-red-300 shadow-sm",
+  danger: "bg-[#c41820] hover:bg-[#a01018] text-white focus:ring-[#c41820]/30 shadow-sm",
   ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-200",
 };
 

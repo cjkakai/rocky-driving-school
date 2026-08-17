@@ -4,11 +4,13 @@ import { branchesAPI } from "../api/branches.api";
 import { broadcastSMS } from "../api/sms.api";
 import { examsAPI } from "../api/exams.api";
 import BroadcastHeader from "../components/broadcast/BroadcastHeader";
+import BroadcastFooter from "../components/broadcast/BroadcastFooter";
 import AudienceStep from "../components/broadcast/AudienceStep";
 import MessageStep from "../components/broadcast/MessageStep";
 import ReviewStep from "../components/broadcast/ReviewStep";
 import { PAGE_SIZE, titleCase } from "../components/broadcast/constants";
 
+/* ═══════════════════════════════════════════════════════════════════ */
 export default function Broadcast() {
 
   /* ── Wizard ── */
@@ -21,7 +23,7 @@ export default function Broadcast() {
   const [total,    setTotal]    = useState(0);
   const [loading,  setLoading]  = useState(false);
 
-  /* ── Audience filters ── */
+  /* ── Audience — segment + filters ── */
   const [segment,      setSegment]      = useState("");
   const [search,       setSearch]       = useState("");
   const [branchId,     setBranchId]     = useState("");
@@ -65,10 +67,12 @@ export default function Broadcast() {
         if (pdlDays)      params.pdl_days      = pdlDays;
         data = await studentsAPI.getAll(params);
       }
-      const list  = Array.isArray(data) ? data : (data?.results ?? []);
+      const list = Array.isArray(data) ? data : (data?.results ?? []);
       const count = Array.isArray(data) ? data.length : (data?.count ?? list.length);
       setStudents(list);
       setTotal(count);
+      // Segment model: matching students are the audience by default.
+      // The reviewer can uncheck individuals in the table to exclude them.
       setSelected(new Set(list.map((s) => s.id)));
     } catch {
       setStudents([]); setTotal(0); setSelected(new Set());
@@ -90,7 +94,7 @@ export default function Broadcast() {
     setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   const allSelected = students.length > 0 && students.every((s) => selected.has(s.id));
-  const toggleAll   = () => setSelected(allSelected ? new Set() : new Set(students.map((s) => s.id)));
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(students.map((s) => s.id)));
 
   /* ── Send ── */
   const handleSend = async () => {
@@ -109,10 +113,10 @@ export default function Broadcast() {
     }
   };
 
-  /* ── Derived ── */
+  /* ── Derived values ── */
   const previewStudent = students.find((s) => selected.has(s.id));
-  const smsCount       = message.length > 160 ? 2 : 1;
-  const totalSms       = selected.size * smsCount;
+  const smsCount = message.length > 160 ? 2 : 1;
+  const totalSms = selected.size * smsCount;
 
   const audienceFilters = useMemo(() => [
     segment === "pdl"    && pdlDays      && `PDL ≤ ${pdlDays}d`,
@@ -136,58 +140,58 @@ export default function Broadcast() {
   };
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
+  /* ─────────────────────────────────────────────────────────── JSX ── */
   return (
-    <div className="min-h-screen bg-gray-200 flex flex-col">
-      <BroadcastHeader
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <BroadcastHeader step={step} selectedCount={selected.size} messageLength={message.length} />
+
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6">
+        {step === 1 && (
+          <AudienceStep
+            segment={segment} setSegment={setSegment}
+            search={search} setSearch={setSearch}
+            branchId={branchId} setBranchId={setBranchId}
+            statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+            examId={examId} setExamId={setExamId}
+            examResult={examResult} setExamResult={setExamResult}
+            courseStatus={courseStatus} setCourseStatus={setCourseStatus}
+            pdlDays={pdlDays} setPdlDays={setPdlDays}
+            branches={branches} exams={exams}
+            students={students} total={total} loading={loading}
+            selected={selected} toggleOne={toggleOne} toggleAll={toggleAll} allSelected={allSelected}
+          />
+        )}
+
+        {step === 2 && (
+          <MessageStep
+            message={message} setMessage={setMessage}
+            selectedCount={selected.size}
+            audienceSummary={audienceSummary}
+            smsCount={smsCount}
+          />
+        )}
+
+        {step === 3 && (
+          <ReviewStep
+            previewStudent={previewStudent}
+            message={message}
+            selectedCount={selected.size}
+            smsCount={smsCount}
+            totalSms={totalSms}
+            audienceFilters={audienceFilters}
+          />
+        )}
+      </div>
+
+      <BroadcastFooter
         step={step}
         selectedCount={selected.size}
-        messageLength={message.length}
         canNext={step === 1 ? canGoStep2 : canGoStep3}
         sending={sending}
         onBack={goBack}
         onNext={goNext}
         onSend={handleSend}
       />
-
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6">
-        <div className="bg-white border-2 border-gray-300 rounded-2xl shadow-md p-6">
-          {step === 1 && (
-            <AudienceStep
-              segment={segment} setSegment={setSegment}
-              search={search} setSearch={setSearch}
-              branchId={branchId} setBranchId={setBranchId}
-              statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-              examId={examId} setExamId={setExamId}
-              examResult={examResult} setExamResult={setExamResult}
-              courseStatus={courseStatus} setCourseStatus={setCourseStatus}
-              pdlDays={pdlDays} setPdlDays={setPdlDays}
-              branches={branches} exams={exams}
-              students={students} total={total} loading={loading}
-              selected={selected} toggleOne={toggleOne} toggleAll={toggleAll} allSelected={allSelected}
-            />
-          )}
-
-          {step === 2 && (
-            <MessageStep
-              message={message} setMessage={setMessage}
-              selectedCount={selected.size}
-              audienceSummary={audienceSummary}
-              smsCount={smsCount}
-            />
-          )}
-
-          {step === 3 && (
-            <ReviewStep
-              previewStudent={previewStudent}
-              message={message}
-              selectedCount={selected.size}
-              smsCount={smsCount}
-              totalSms={totalSms}
-              audienceFilters={audienceFilters}
-            />
-          )}
-        </div>
-      </div>
 
       {toast && (
         <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-xl text-sm font-bold text-white transition-all ${

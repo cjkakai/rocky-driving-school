@@ -6,9 +6,9 @@ import { useAuth } from "../context/AuthContext";
 
 /* ── Quotes ──────────────────────────────────────────────────────── */
 const PALETTE = [
-  { accent: "#60a5fa", glow: "rgba(96,165,250,0.18)"  },
-  { accent: "#34d399", glow: "rgba(52,211,153,0.18)"  },
-  { accent: "#22d3ee", glow: "rgba(34,211,238,0.18)"  },
+  { accent: "#ffd700", glow: "rgba(255,215,0,0.15)"   },
+  { accent: "#ff3d44", glow: "rgba(255,61,68,0.15)"   },
+  { accent: "#ffd700", glow: "rgba(255,215,0,0.12)"   },
 ];
 
 const QUOTES = [
@@ -71,15 +71,15 @@ const STYLES = `
     border-radius:10px; font-size:14px;
     font-family:'DM Sans',sans-serif;
     outline:none; transition:all .18s ease;
-    background:rgba(255,255,255,0.07);
-    border:1px solid rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.10);
     color:#fff;
   }
   .lp-input::placeholder { color:rgba(255,255,255,0.28); }
   .lp-input:focus {
-    background:rgba(255,255,255,0.11);
-    border-color:rgba(96,165,250,0.55);
-    box-shadow:0 0 0 3px rgba(96,165,250,0.1);
+    background:rgba(255,255,255,0.10);
+    border-color:rgba(196,24,32,0.7);
+    box-shadow:0 0 0 3px rgba(196,24,32,0.15);
   }
 
   /* ── Button ── */
@@ -91,13 +91,14 @@ const STYLES = `
     color:#fff; border:none; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:8px;
     transition:all .2s ease;
-    background:linear-gradient(135deg,#3b82f6 0%,#2563eb 50%,#4f46e5 100%);
-    box-shadow:0 4px 20px rgba(59,130,246,0.5), inset 0 1px 0 rgba(255,255,255,0.18);
+    background:linear-gradient(135deg,#ed1c24 0%,#c41820 50%,#a01018 100%);
+    box-shadow:0 4px 20px rgba(196,24,32,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
     letter-spacing:.01em;
   }
   .lp-btn:hover:not(:disabled) {
     transform:translateY(-1px);
-    box-shadow:0 8px 28px rgba(59,130,246,0.65), inset 0 1px 0 rgba(255,255,255,0.18);
+    background:linear-gradient(135deg,#ff3d44 0%,#ed1c24 50%,#c41820 100%);
+    box-shadow:0 8px 28px rgba(196,24,32,0.6), inset 0 1px 0 rgba(255,255,255,0.15);
   }
   .lp-btn:active:not(:disabled) { transform:translateY(0); }
   .lp-btn:disabled { opacity:.5; cursor:not-allowed; }
@@ -112,29 +113,26 @@ const STYLES = `
     padding:16px; position:relative; overflow:hidden;
   }
 
-  /* ── CARD: deeper, richer dark — no more ashy navy ── */
+  /* ── CARD: dark with red undertone ── */
   .lp-card {
     display:flex; width:100%;
     max-width:960px; min-height:600px;
     border-radius:24px; overflow:hidden;
     position:relative; z-index:10;
     animation:fadeIn .5s ease both;
-    background:rgba(8,15,35,0.94);
-    backdrop-filter:blur(40px) saturate(1.8);
-    -webkit-backdrop-filter:blur(40px) saturate(1.8);
-    border:1px solid rgba(255,255,255,0.10);
+    background:#1a0a0b;
+    border:1px solid rgba(196,24,32,0.25);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.07) inset,
-      0 40px 100px rgba(0,0,0,0.65),
-      0 12px 32px rgba(0,0,0,0.45),
-      0 2px 8px rgba(0,0,0,0.35);
+      0 40px 80px rgba(0,0,0,0.45),
+      0 12px 32px rgba(196,24,32,0.15),
+      0 2px 8px rgba(0,0,0,0.3);
   }
 
   .lp-form-panel {
     flex:0 0 50%;
     display:flex; flex-direction:column;
     position:relative; overflow:hidden;
-    border-right:1px solid rgba(255,255,255,0.07);
+    border-right:1px solid rgba(196,24,32,0.20);
   }
   .lp-logo-area {
     position:relative; z-index:10;
@@ -185,25 +183,25 @@ function AuroraBackground() {
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:0,
-      background:"#eef2ff",
+      background:"#f8f9fa",
       overflow:"hidden", pointerEvents:"none",
     }}>
       <div style={{
         position:"absolute", width:"72vw", height:"72vw",
         top:"-22%", left:"-14%",
-        background:"radial-gradient(ellipse, rgba(148,163,252,0.65) 0%, transparent 65%)",
+        background:"radial-gradient(ellipse, rgba(196,24,32,0.12) 0%, transparent 65%)",
         animation:"auroraA 24s ease-in-out infinite", willChange:"transform",
       }} />
       <div style={{
         position:"absolute", width:"66vw", height:"66vw",
         bottom:"-28%", right:"-16%",
-        background:"radial-gradient(ellipse, rgba(192,170,252,0.55) 0%, transparent 65%)",
+        background:"radial-gradient(ellipse, rgba(237,28,36,0.10) 0%, transparent 65%)",
         animation:"auroraB 30s ease-in-out infinite", willChange:"transform",
       }} />
       <div style={{
         position:"absolute", width:"52vw", height:"52vw",
         top:"38%", left:"32%",
-        background:"radial-gradient(ellipse, rgba(167,220,252,0.45) 0%, transparent 60%)",
+        background:"radial-gradient(ellipse, rgba(255,215,0,0.10) 0%, transparent 60%)",
         animation:"auroraC 20s ease-in-out infinite", willChange:"transform",
       }} />
     </div>
@@ -500,7 +498,7 @@ export default function Login() {
                     width:"100%", height:"100%", borderRadius:"50%",
                     overflow:"hidden", background:"#fff",
                   }}>
-                    <img src="/fiveStarLogo.webp" alt="Rocky"
+                    <img src="/images.png" alt="Rocky"
                       style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
                 </div>
@@ -520,7 +518,7 @@ export default function Login() {
                 <p style={{
                   fontSize:10, fontWeight:500,
                   letterSpacing:".18em", textTransform:"uppercase",
-                  color:"rgba(147,197,253,0.9)", margin:"0 0 10px",
+                  color:"rgba(255,215,0,0.85)", margin:"0 0 10px",
                   fontFamily:"'DM Mono',monospace",
                 }}>
                   Staff Portal
@@ -547,7 +545,7 @@ export default function Login() {
                     <User style={{
                       position:"absolute", left:12, top:"50%",
                       transform:"translateY(-50%)",
-                      width:14, height:14, color:"rgba(255,255,255,0.25)",
+                      width:14, height:14, color:"rgba(255,255,255,0.3)",
                     }} />
                     <input className="lp-input" type="text"
                       placeholder="Enter your username" value={username}
@@ -568,7 +566,7 @@ export default function Login() {
                     <Lock style={{
                       position:"absolute", left:12, top:"50%",
                       transform:"translateY(-50%)",
-                      width:14, height:14, color:"rgba(255,255,255,0.25)",
+                      width:14, height:14, color:"rgba(255,255,255,0.3)",
                     }} />
                     <input className="lp-input" type="password"
                       placeholder="Enter your password" value={password}
@@ -580,7 +578,7 @@ export default function Login() {
                 <div style={{ display:"flex", justifyContent:"flex-end", marginTop:-4 }}>
                   <Link to="/forgot-password" style={{
                     fontSize:12, fontWeight:600,
-                    color:"rgba(147,197,253,0.85)", textDecoration:"none",
+                    color:"rgba(255,215,0,0.8)", textDecoration:"none",
                   }}
                     onMouseEnter={e => e.target.style.textDecoration="underline"}
                     onMouseLeave={e => e.target.style.textDecoration="none"}

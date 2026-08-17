@@ -18,7 +18,7 @@ export function PaymentsTable({
   onPrintReceipt,
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div className="bg-white border border-gray-200 overflow-hidden">
       {loading ? (
         <div className="py-20 flex justify-center text-gray-300">
           <Loader2 className="w-6 h-6 animate-spin" />
@@ -34,7 +34,7 @@ export function PaymentsTable({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-900 border-b">
+              <tr className="border-b" style={{ background: "#1a0a0b" }}>
                 {[
                   "Transaction",
                   "Channel",
@@ -49,7 +49,7 @@ export function PaymentsTable({
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap"
+                  className="px-4 py-3 text-left text-[10px] font-extrabold text-white/60 uppercase tracking-widest whitespace-nowrap"
                   >
                     {h}
                   </th>
@@ -170,7 +170,7 @@ export function PaymentsTable({
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg bg-[#1a0a0b] text-white hover:bg-[#3d1a1c] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -180,7 +180,7 @@ export function PaymentsTable({
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg bg-[#1a0a0b] text-white hover:bg-[#3d1a1c] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

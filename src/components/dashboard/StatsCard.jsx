@@ -1,24 +1,37 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
-
-export function StatsCard({ icon: Icon, label, value, subtext, trend, gradient = "from-blue-600 to-blue-700" }) {
+export function StatsCard({ icon: Icon, label, value, subtext, gradient, accentColor, detail }) {
   return (
-    <div className={`bg-gradient-to-br ${gradient} rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5`}>
-      <div className="flex items-start justify-between">
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70 mb-1.5">{label}</p>
-          <p className="text-2xl font-black text-white truncate">{value ?? "—"}</p>
-          {subtext && <p className="text-[11px] text-white/60 mt-1">{subtext}</p>}
-        </div>
-        <div className="p-2 bg-white/15 rounded-xl shrink-0 ml-3">
-          <Icon className="w-4 h-4 text-white" />
-        </div>
-      </div>
-      {trend !== undefined && (
-        <div className="mt-2.5 flex items-center gap-1">
-          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${trend >= 0 ? "bg-white/20 text-white" : "bg-white/20 text-white"}`}>
-            {trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {Math.abs(trend)}%
+    <div className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden">
+      {/* Top color accent bar */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl" style={{ background: accentColor }} />
+
+      <div className="p-5">
+        {/* Icon + label row */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110"
+            style={{ background: `${accentColor}14`, color: accentColor }}
+          >
+            <Icon className="w-4 h-4" />
           </div>
+        </div>
+
+        {/* Value */}
+        <p className="text-3xl font-black text-gray-900 tracking-tight leading-none">{value ?? "—"}</p>
+
+        {/* Subtext */}
+        {subtext && (
+          <p className="text-[11px] text-gray-400 mt-2 font-medium">{subtext}</p>
+        )}
+      </div>
+
+      {/* Bottom detail strip */}
+      {detail && (
+        <div
+          className="px-5 py-2.5 border-t flex items-center gap-1.5"
+          style={{ borderColor: `${accentColor}18`, background: `${accentColor}06` }}
+        >
+          <span className="text-[11px] font-semibold" style={{ color: accentColor }}>{detail}</span>
         </div>
       )}
     </div>

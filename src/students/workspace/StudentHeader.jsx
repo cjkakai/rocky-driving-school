@@ -14,6 +14,12 @@ export default function StudentHeader({ student, onUpdate }) {
   const [showEdit, setShowEdit] = useState(false);
   const backPath = location.state?.from || "/dashboard/students";
 
+  const initials = student.full_name?.trim().split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+
+  const activeCourse = student?.student_courses?.find(
+    (sc) => sc.status !== "transferred" && sc.status !== "completed"
+  ) || student?.student_courses?.[0];
+
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
       {/* Breadcrumb */}
@@ -30,8 +36,8 @@ export default function StudentHeader({ student, onUpdate }) {
 
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-black text-base shadow-md shrink-0 select-none">
-            {student.full_name?.trim().split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()}
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#c41820] to-[#2c1417] flex items-center justify-center text-white font-black text-base shadow-md shrink-0 select-none">
+            {initials}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -42,11 +48,16 @@ export default function StudentHeader({ student, onUpdate }) {
               <span className="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
                 {student.admission_number}
               </span>
+              {activeCourse && (
+                <span className="text-xs text-gray-500">{activeCourse.course_name}</span>
+              )}
             </div>
             <div className="flex items-center gap-4 mt-1 flex-wrap">
-              <span className="flex items-center gap-1 text-xs text-gray-500">
-                <Phone className="w-3 h-3" /> {student.phone}
-              </span>
+              {student.phone && (
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <Phone className="w-3 h-3" /> {student.phone}
+                </span>
+              )}
               {student.branch?.name && (
                 <span className="flex items-center gap-1 text-xs text-gray-500">
                   <MapPin className="w-3 h-3" /> {student.branch.name}

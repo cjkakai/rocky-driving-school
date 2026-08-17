@@ -25,25 +25,21 @@ function useCountUp(target, duration = 800) {
 }
 
 /* ─── Stat card ──────────────────────────────────────────────────── */
-function StatCard({ label, icon: Icon, gradient, value }) {
+function StatCard({ label, icon: Icon, accent, value }) {
   const display = useCountUp(value);
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-br ${gradient} rounded-2xl p-5 text-white
-        shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5`}
-      style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.18)" }}
+      className="relative bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05)" }}
     >
-      <div
-        className="absolute pointer-events-none inset-0"
-        style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.09) 0%, transparent 55%)" }}
-      />
-      <div className="relative flex items-start justify-between">
+      <div className="absolute left-0 top-4 bottom-4 w-1 rounded-r-full" style={{ background: accent }} />
+      <div className="flex items-start justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-white/60 mb-2">{label}</p>
-          <p className="text-3xl font-black text-white tabular-nums leading-none">{display}</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">{label}</p>
+          <p className="text-3xl font-black text-gray-900 tabular-nums leading-none">{display}</p>
         </div>
-        <div className="p-2.5 bg-white/15 rounded-xl shrink-0">
-          <Icon className="w-5 h-5 text-white" />
+        <div className="p-2.5 rounded-xl shrink-0" style={{ background: `${accent}15` }}>
+          <Icon className="w-5 h-5" style={{ color: accent }} />
         </div>
       </div>
     </div>
@@ -175,8 +171,8 @@ function CoursePipeline({ courseCounts, totalCourses }) {
 /* ─── Financial summary — white card, clean fintech feel ─────────── */
 
 const FIN_CONFIG = [
-  { key: "agreed",  label: "Total Agreed",  color: "#2563eb" },
-  { key: "paid",    label: "Total Paid",    color: "#10b981" },
+  { key: "agreed",  label: "Total Agreed",  color: "#1a0a0b" },
+  { key: "paid",    label: "Total Paid",    color: "#059669" },
   { key: "balance", label: "Outstanding",   color: "#f59e0b" },
 ];
 
@@ -213,14 +209,14 @@ function FinancialSummary({ summary }) {
 
   const donutData = agreed > 0
     ? [
-        { name: "Paid",        value: paid,    color: "#10b981" },
+        { name: "Paid",        value: paid,    color: "#059669" },
         { name: "Outstanding", value: balance, color: "#f59e0b" },
       ]
     : [{ name: "None", value: 1, color: "#e2e8f0" }];
 
   const rows = [
-    { key: "agreed",  label: "Total Agreed", value: agreed,  color: "#2563eb", pct: 100,        barPct: 100 },
-    { key: "paid",    label: "Total Paid",   value: paid,    color: "#10b981", pct: paidPct,    barPct: paidPct },
+    { key: "agreed",  label: "Total Agreed", value: agreed,  color: "#1a0a0b", pct: 100,        barPct: 100 },
+    { key: "paid",    label: "Total Paid",   value: paid,    color: "#059669", pct: paidPct,    barPct: paidPct },
     { key: "balance", label: "Outstanding",  value: balance, color: "#f59e0b", pct: balancePct, barPct: balancePct },
   ];
 
@@ -233,7 +229,7 @@ function FinancialSummary({ summary }) {
       <div className="px-6 py-3.5 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {/* brand-red accent line */}
-          <div className="w-1 h-5 rounded-full bg-red-600" />
+          <div className="w-1 h-5 rounded-full" style={{ background: "#1a0a0b" }} />
           <p className="text-sm font-bold text-gray-800">Financial Overview</p>
         </div>
         {agreed > 0 && (
@@ -335,11 +331,11 @@ export function StudentStatCards({ summary }) {
   const examListed   = (courseCounts["exam_booked"] ?? 0) + (courseCounts["exam_approved"] ?? 0);
   const failedRetake = (courseCounts["failed"] ?? 0) + (courseCounts["retake_booked"] ?? 0);
   const CARDS = [
-    { label: "Students",          icon: Users,         gradient: "from-blue-600 to-blue-700",       value: summary?.student_count    ?? 0 },
-    { label: "Total Courses",     icon: BookOpen,      gradient: "from-cyan-600 to-cyan-500",       value: totalCourses },
-    { label: "Exam List/Approved",icon: ClipboardList, gradient: "from-emerald-600 to-emerald-700", value: examListed },
-    { label: "Failed / Retake",   icon: AlertTriangle, gradient: "from-red-500 to-rose-600",        value: failedRetake },
-    { label: "Pending Payment",   icon: CreditCard,    gradient: "from-amber-500 to-orange-600",    value: summary?.pending_payment  ?? 0 },
+    { label: "Students",           icon: Users,         accent: "#1a0a0b", value: summary?.student_count    ?? 0 },
+    { label: "Total Courses",      icon: BookOpen,      accent: "#475569", value: totalCourses },
+    { label: "Exam List/Approved", icon: ClipboardList, accent: "#0891b2", value: examListed },
+    { label: "Failed / Retake",    icon: AlertTriangle, accent: "#f59e0b", value: failedRetake },
+    { label: "Pending Payment",    icon: CreditCard,    accent: "#c41820", value: summary?.pending_payment  ?? 0 },
   ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
