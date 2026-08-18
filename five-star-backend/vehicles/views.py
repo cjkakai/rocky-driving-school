@@ -1,27 +1,31 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from .models import Vehicle
 from .serializers import VehicleSerializer
 
 
-def _admin_required(user):
-    if user.role != "super_admin":
-        return Response({"detail": "Forbidden."}, status=403)
-    return None
+def _is_admin(user):
+    return user.role == "super_admin"
+
+
+def _can_mutate(user, vehicle):
+    """Branch user can only edit/delete vehicles assigned to their branch."""
+    if _is_admin(user):
+        return True
+    return vehicle.branch_id is not None and vehicle.branch_id == user.branch_id
 
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def vehicle_list_create(request):
-    err = _admin_required(request.user)
-    if err:
-        return err
-
     if request.method == "GET":
-        qs = Vehicle.objects.all()
+        qs = Vehicle.objects.select_related("branch").all()
+        if not _is_admin(request.user):
+            # branch user sees their branch vehicles + general (no branch)
+            qs = qs.filter(Q(branch_id=request.user.branch_id) | Q(branch__isnull=True))
         insurance_status = request.query_params.get("insurance_status")
         if insurance_status:
             qs = qs.filter(insurance_status=insurance_status)
@@ -30,7 +34,11 @@ def vehicle_list_create(request):
             qs = qs.filter(inspection_status=inspection_status)
         return Response(VehicleSerializer(qs, many=True).data)
 
-    serializer = VehicleSerializer(data=request.data)
+    # POST
+    data = request.data.copy()
+    if not _is_admin(request.user):
+        data["branch"] = request.user.branch_id
+    serializer = VehicleSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response(serializer.data, status=201)
@@ -39,20 +47,22 @@ def vehicle_list_create(request):
 @api_view(["GET", "PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def vehicle_detail(request, pk):
-    err = _admin_required(request.user)
-    if err:
-        return err
-
     try:
-        vehicle = Vehicle.objects.get(pk=pk)
+        vehicle = Vehicle.objects.select_related("branch").get(pk=pk)
     except Vehicle.DoesNotExist:
         return Response({"detail": "Not found."}, status=404)
 
     if request.method == "GET":
         return Response(VehicleSerializer(vehicle).data)
 
+    if not _can_mutate(request.user, vehicle):
+        return Response({"detail": "Forbidden."}, status=403)
+
     if request.method == "PATCH":
-        serializer = VehicleSerializer(vehicle, data=request.data, partial=True)
+        data = request.data.copy()
+        if not _is_admin(request.user):
+            data.pop("branch", None)  # branch users can't reassign branch
+        serializer = VehicleSerializer(vehicle, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -64,11 +74,10 @@ def vehicle_detail(request, pk):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def vehicle_stats(request):
-    err = _admin_required(request.user)
-    if err:
-        return err
-
     qs = Vehicle.objects.all()
+    if not _is_admin(request.user):
+        from django.db.models import Q
+        qs = qs.filter(Q(branch_id=request.user.branch_id) | Q(branch__isnull=True))
     return Response({
         "total": qs.count(),
         "insurance_active": qs.filter(insurance_status="ACTIVE").count(),

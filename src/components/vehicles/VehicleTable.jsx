@@ -28,7 +28,7 @@ function SortIcon({ col, sort }) {
     : <ChevronDown className="w-3 h-3 text-gray-500" />;
 }
 
-export function VehicleTable({ vehicles, loading, onEdit, onDelete, quickFilter }) {
+export function VehicleTable({ vehicles, loading, onEdit, onDelete, quickFilter, isSuperAdmin, userBranchId }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ col: "registration_number", dir: "asc" });
   const [page, setPage] = useState(1);
@@ -59,6 +59,8 @@ export function VehicleTable({ vehicles, loading, onEdit, onDelete, quickFilter 
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const canMutate = (v) => isSuperAdmin || (v.branch != null && v.branch === userBranchId);
 
   const TH = ({ col, children, className = "" }) => (
     <th
@@ -105,6 +107,7 @@ export function VehicleTable({ vehicles, loading, onEdit, onDelete, quickFilter 
               <TH col="registration_number">Reg. Number</TH>
               <TH col="vehicle_name">Vehicle</TH>
               <TH col="vehicle_type">Type</TH>
+              <TH col="branch_name">Branch</TH>
               <TH col="insurance_status">Insurance</TH>
               <TH col="insurance_expiry_date">Ins. Expiry</TH>
               <TH col="inspection_status">Inspection</TH>
@@ -157,6 +160,12 @@ export function VehicleTable({ vehicles, loading, onEdit, onDelete, quickFilter 
                     </span>
                   </td>
                   <td className="px-4 py-3.5">
+                    {v.branch_name
+                      ? <span className="text-xs font-semibold text-gray-700">{v.branch_name}</span>
+                      : <span className="text-[11px] text-gray-400 italic">General</span>
+                    }
+                  </td>
+                  <td className="px-4 py-3.5">
                     <StatusBadge
                       label={v.insurance_status === "ACTIVE" ? "Active" : "Expired"}
                       style={INS_STYLE[v.insurance_status] ?? INS_STYLE.EXPIRED}
@@ -171,22 +180,24 @@ export function VehicleTable({ vehicles, loading, onEdit, onDelete, quickFilter 
                   </td>
                   <td className="px-4 py-3.5 text-xs font-mono text-gray-500">{fmtDate(v.inspection_due_date)}</td>
                   <td className="px-4 py-3.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => onEdit(v)}
-                        title="Edit"
-                        className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 hover:scale-110 active:scale-95 transition-all"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => onDelete(v)}
-                        title="Delete"
-                        className="p-1.5 rounded-lg hover:bg-rose-50 text-gray-400 hover:text-rose-600 hover:scale-110 active:scale-95 transition-all"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    {canMutate(v) && (
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => onEdit(v)}
+                          title="Edit"
+                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 hover:scale-110 active:scale-95 transition-all"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => onDelete(v)}
+                          title="Delete"
+                          className="p-1.5 rounded-lg hover:bg-rose-50 text-gray-400 hover:text-rose-600 hover:scale-110 active:scale-95 transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))

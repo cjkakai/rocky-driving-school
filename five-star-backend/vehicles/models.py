@@ -1,4 +1,5 @@
 from django.db import models
+from branches.models import Branch
 
 
 class Vehicle(models.Model):
@@ -22,6 +23,9 @@ class Vehicle(models.Model):
         max_length=10, choices=INSPECTION_STATUS_CHOICES, default="NOT_DUE", db_index=True
     )
     inspection_due_date = models.DateField(null=True, blank=True)
+    branch = models.ForeignKey(
+        Branch, null=True, blank=True, on_delete=models.SET_NULL, related_name="vehicles"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

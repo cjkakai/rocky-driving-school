@@ -1,14 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { Modal, Btn, Label, Input } from "../../ui";
 import { vehiclesAPI } from "../../api/vehicles.api";
+import request from "../../api/client";
 
 const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Pickup", "Van", "Minibus", "Truck", "Motorcycle"];
 
-export function VehicleModal({ open, onClose, onSaved, vehicle }) {
+export function VehicleModal({ open, onClose, onSaved, vehicle, isSuperAdmin }) {
   const isEdit = !!vehicle;
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm();
+
+  const [branches, setBranches] = useState([]);
+
+  useEffect(() => {
+    if (isSuperAdmin) request("/api/branches/").then(setBranches).catch(() => {});
+  }, [isSuperAdmin]);
 
   useEffect(() => {
     if (open) {
@@ -21,19 +28,23 @@ export function VehicleModal({ open, onClose, onSaved, vehicle }) {
             insurance_expiry_date: vehicle.insurance_expiry_date ?? "",
             inspection_status: vehicle.inspection_status,
             inspection_due_date: vehicle.inspection_due_date ?? "",
+            branch: vehicle.branch ?? "",
           }
         : {
             registration_number: "", vehicle_name: "", vehicle_type: "",
             insurance_status: "ACTIVE", insurance_expiry_date: "",
             inspection_status: "NOT_DUE", inspection_due_date: "",
+            branch: "",
           }
       );
     }
   }, [open, vehicle, reset]);
 
   const onSubmit = async (data) => {
-    if (isEdit) await vehiclesAPI.update(vehicle.id, data);
-    else await vehiclesAPI.create(data);
+    const payload = { ...data };
+    if (isSuperAdmin && !payload.branch) delete payload.branch; // leave null if not selected
+    if (isEdit) await vehiclesAPI.update(vehicle.id, payload);
+    else await vehiclesAPI.create(payload);
     onSaved();
     onClose();
   };
@@ -93,6 +104,18 @@ export function VehicleModal({ open, onClose, onSaved, vehicle }) {
             <Input id="inspection_due_date" type="date" {...register("inspection_due_date")} />
           </div>
         </div>
+
+        {isSuperAdmin && (
+          <div>
+            <Label htmlFor="branch">Branch <span className="text-gray-400 font-normal">(leave blank for general)</span></Label>
+            <select id="branch" {...register("branch")} className={sel}>
+              <option value="">General / All branches</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 pt-2">
           <Btn variant="outline" onClick={onClose} type="button">Cancel</Btn>

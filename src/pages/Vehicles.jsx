@@ -7,6 +7,7 @@ import { VehicleKpiCards } from "../components/vehicles/VehicleKpiCards";
 import { VehicleCharts } from "../components/vehicles/VehicleCharts";
 import { VehicleTable } from "../components/vehicles/VehicleTable";
 import { VehicleModal } from "../components/vehicles/VehicleModal";
+import { useAuth } from "../context/AuthContext";
 
 const QUICK_FILTERS = [
   { key: "all",               label: "All" },
@@ -16,6 +17,8 @@ const QUICK_FILTERS = [
 ];
 
 export default function Vehicles() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "super_admin";
   const [vehicles, setVehicles] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -97,6 +100,8 @@ export default function Vehicles() {
           vehicles={vehicles}
           loading={loading}
           quickFilter={quickFilter === "all" ? "" : quickFilter}
+          isSuperAdmin={isSuperAdmin}
+          userBranchId={user?.branch_id}
           onEdit={(v) => { setEditVehicle(v); setModalOpen(true); }}
           onDelete={setDeleteTarget}
         />
@@ -107,6 +112,7 @@ export default function Vehicles() {
         onClose={() => { setModalOpen(false); setEditVehicle(null); }}
         onSaved={handleSaved}
         vehicle={editVehicle}
+        isSuperAdmin={isSuperAdmin}
       />
       <DeleteConfirmModal
         open={!!deleteTarget}

@@ -17,7 +17,7 @@ const getMenuItems = (role) => [
   { path: "/dashboard/targets",     label: "Targets",     icon: Crosshair },
   { path: "/dashboard/instructors", label: "Instructors", icon: GraduationCap },
   { path: "/dashboard/reports",     label: "Reports",   icon: BarChart3 },
-  { path: "/dashboard/vehicles",    label: "Vehicles",  icon: Car,        adminOnly: true },
+  { path: "/dashboard/vehicles",    label: "Vehicles",  icon: Car },
   { path: "/dashboard/branches",    label: "Branches",  icon: GitBranch,  adminOnly: true },
   { path: "/dashboard/courses",     label: "Courses",   icon: BookOpen,   adminOnly: true },
   { path: "/dashboard/users",       label: "Users",     icon: UserCog,    adminOnly: true },

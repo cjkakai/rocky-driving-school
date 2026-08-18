@@ -161,14 +161,14 @@ function receiptBodyHtml(payment, copyLabel) {
       <div class="receipt-watermark">${copyLabel}</div>
       <div class="receipt-content">
         <div class="receipt-header">
-          <img src="/fiveStarLogo.webp" alt="Five Star Logo" class="receipt-logo-img" />
-          <h1 class="receipt-title">Five Star Driving School</h1>
+          <img src="/images.png" alt="Rocky Driving School" class="receipt-logo-img" />
+          <h1 class="receipt-title">Rocky Driving School</h1>
           <p class="receipt-branch">${payment.branch_name || "Main Branch"}</p>
           <div class="receipt-contacts">
-            <p>Head Office: +254 727 555 558</p>
+            <p>Head Office: +254 700 000 000</p>
             ${payment.branch_phone_number ? `<p>Branch: ${payment.branch_phone_number}</p>` : ""}
             <p>Nairobi, Kenya</p>
-            <p>fivestardrivingschoolsltd@gmail.com</p>
+            <p>info@rockydrivingschool.co.ke</p>
           </div>
         </div>
         <div class="receipt-divider-thick"></div>
@@ -203,9 +203,9 @@ function receiptBodyHtml(payment, copyLabel) {
           </div>
           <div class="receipt-footer-note"><p>WE DO NOT ACCEPT CASH PAYMENTS</p></div>
           <p class="receipt-thank-you">Thank you for choosing</p>
-          <p class="receipt-thank-you-bold">Five Star Driving School</p>
+          <p class="receipt-thank-you-bold">Rocky Driving School</p>
           <div class="receipt-timestamp"><p>Printed: ${printed}</p></div>
-          <p class="receipt-powered">Powered by Five Star Ltd</p>
+          <p class="receipt-powered">Powered by Rocky Driving School</p>
           <p class="receipt-copy-label">${copyLabel}</p>
         </div>
       </div>
@@ -224,14 +224,14 @@ function ReceiptPreview({ payment }) {
       <div className="receipt-watermark">client copy</div>
       <div className="receipt-content">
         <div className="receipt-header">
-          <img src="/fiveStarLogo.webp" alt="Five Star Logo" className="receipt-logo-img" />
-          <h1 className="receipt-title">Five Star Driving School</h1>
+          <img src="/images.png" alt="Rocky Driving School" className="receipt-logo-img" />
+          <h1 className="receipt-title">Rocky Driving School</h1>
           <p className="receipt-branch">{payment.branch_name || "Main Branch"}</p>
           <div className="receipt-contacts">
-            <p>Head Office: +254 727 555 558</p>
+            <p>Head Office: +254 700 000 000</p>
             {payment.branch_phone_number && <p>Branch: {payment.branch_phone_number}</p>}
             <p>Nairobi, Kenya</p>
-            <p>fivestardrivingschoolsltd@gmail.com</p>
+            <p>info@rockydrivingschool.co.ke</p>
           </div>
         </div>
 
@@ -293,9 +293,9 @@ function ReceiptPreview({ payment }) {
           </div>
           <div className="receipt-footer-note"><p>WE DO NOT ACCEPT CASH PAYMENTS</p></div>
           <p className="receipt-thank-you">Thank you for choosing</p>
-          <p className="receipt-thank-you-bold">Five Star Driving School</p>
+          <p className="receipt-thank-you-bold">Rocky Driving School</p>
           <div className="receipt-timestamp"><p>Printed: {printed}</p></div>
-          <p className="receipt-powered">Powered by Five Star Ltd</p>
+          <p className="receipt-powered">Powered by Rocky Driving School</p>
           <p className="receipt-copy-label">client copy</p>
         </div>
       </div>

@@ -59,13 +59,13 @@ export function SetTargetModal({ open, onClose, onSaved, branches }) {
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md">
 
         {/* Accent bar */}
-        <div className="h-1 rounded-t-3xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500" />
+        <div className="h-1 rounded-t-3xl bg-gradient-to-r from-[#8f1017] via-[#c41820] to-[#8f1017]" />
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
-              <Wallet className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-2xl bg-[#1a0a0b] flex items-center justify-center shrink-0">
+              <Wallet className="w-5 h-5 text-white" />
             </div>
             <div>
               <h2 className="font-bold text-gray-900 leading-none">Set Target</h2>
@@ -96,15 +96,15 @@ export function SetTargetModal({ open, onClose, onSaved, branches }) {
                     onClick={() => setMetric(m)}
                     className={`text-left px-4 py-3 rounded-2xl border transition-all ${
                       active
-                        ? "bg-blue-50 border-blue-500 ring-1 ring-blue-500"
+                        ? "bg-[#1a0a0b] border-[#c41820] ring-1 ring-[#c41820]"
                         : "bg-white border-gray-200 hover:border-gray-300"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 mb-2 ${active ? "text-blue-600" : "text-gray-400"}`} />
-                    <p className={`text-sm font-bold leading-none ${active ? "text-blue-700" : "text-gray-700"}`}>
+                    <Icon className={`w-4 h-4 mb-2 ${active ? "text-white" : "text-gray-400"}`} />
+                    <p className={`text-sm font-bold leading-none ${active ? "text-white" : "text-gray-700"}`}>
                       {label}
                     </p>
-                    <p className={`text-[11px] mt-1 leading-tight ${active ? "text-blue-500" : "text-gray-400"}`}>
+                    <p className={`text-[11px] mt-1 leading-tight ${active ? "text-white/70" : "text-gray-400"}`}>
                       {desc}
                     </p>
                   </button>
@@ -114,9 +114,9 @@ export function SetTargetModal({ open, onClose, onSaved, branches }) {
           </div>
 
           {/* Period chip */}
-          <div className="flex items-center gap-2 px-3.5 py-2.5 bg-blue-50/70 border border-blue-100 rounded-2xl">
-            <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-            <p className="text-xs text-blue-700 font-medium">
+          <div className="flex items-center gap-2 px-3.5 py-2.5 bg-red-50/70 border border-red-100 rounded-2xl">
+            <Calendar className="w-3.5 h-3.5 text-[#c41820] shrink-0" />
+            <p className="text-xs text-[#c41820] font-medium">
               Setting target for <span className="font-bold">{periodLabel}</span>
             </p>
           </div>
@@ -149,7 +149,7 @@ export function SetTargetModal({ open, onClose, onSaved, branches }) {
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={isRevenue ? "500,000" : "20"}
-                className={`w-full py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                className={`w-full py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#c41820]/20 focus:border-[#c41820] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                   isRevenue ? "pl-12 pr-3" : "pl-3.5 pr-24"
                 }`}
               />
@@ -181,7 +181,7 @@ export function SetTargetModal({ open, onClose, onSaved, branches }) {
             <button
               type="submit"
               disabled={saving || !period}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/25 disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#c41820] hover:bg-[#a3141b] shadow-lg shadow-[#c41820]/25 disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2"
             >
               {saving && <Loader2 className="w-4 h-4 animate-spin" />}
               {saving ? "Saving…" : "Save Target"}

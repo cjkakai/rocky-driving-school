@@ -53,14 +53,7 @@ const router = createBrowserRouter([
       { path: "payments", element: <Payments /> },
       { path: "attendance", element: <Attendance /> },
       { path: "instructors", element: <Instructors /> },
-      {
-        path: "vehicles",
-        element: (
-          <ProtectedRoute allowedRoles={adminOnly}>
-            <Vehicles />
-          </ProtectedRoute>
-        ),
-      },
+      { path: "vehicles", element: <Vehicles /> },
       { path: "expenses", element: <Expenses /> },
       { path: "exams", element: <Exams /> },
       { path: "reports", element: <Reports /> },
