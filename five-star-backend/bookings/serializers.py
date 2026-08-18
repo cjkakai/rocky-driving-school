@@ -49,7 +49,9 @@ class ExamBookingSerializer(serializers.ModelSerializer):
         model = ExamBooking
         fields = [
             "id", "student_course", "student", "exam", "exam_name", "exam_date",
-            "status", "booked_by", "approved_by", "approved_at", "created_at", "updated_at",
+            "status", "booked_by", "approved_by", "approved_at",
+            "admin1_comment", "admin2_comment",
+            "created_at", "updated_at",
             "student_name", "student_admission", "student_phone", "student_id_number",
             "branch_name", "course_name", "student_course_status", "result",
         ]

@@ -24,7 +24,10 @@ export const examsAPI = {
   },
   createBooking: (data) =>
     request("/api/exam-bookings/", { method: "POST", body: JSON.stringify(data) }),
-  approve: (id) => request(`/api/exam-bookings/${id}/approve/`, { method: "POST" }),
+  approve: (id, admin2_comment = "") =>
+    request(`/api/exam-bookings/${id}/approve/`, { method: "POST", body: JSON.stringify({ admin2_comment }) }),
+  patchBooking: (id, data) =>
+    request(`/api/exam-bookings/${id}/`, { method: "PATCH", body: JSON.stringify(data) }),
   removeBooking: (id) => request(`/api/exam-bookings/${id}/remove_student/`, { method: "POST" }),
 
   createResult: (data) =>

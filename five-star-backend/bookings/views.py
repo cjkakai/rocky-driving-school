@@ -342,7 +342,11 @@ class ExamBookingViewSet(viewsets.ModelViewSet):
                 {"student_course": f"Student must be in 'Pending Exam' status (current: {student_course.status})."}
             )
 
-        serializer.save(booked_by=self.request.user, student=student_course.student)
+        serializer.save(
+            booked_by=self.request.user,
+            student=student_course.student,
+            admin1_comment=self.request.data.get("admin1_comment", ""),
+        )
         student_course.status = "exam_list"
         student_course.save(update_fields=["status", "updated_at"])
         sync_student_status(student_course.student)
@@ -353,6 +357,7 @@ class ExamBookingViewSet(viewsets.ModelViewSet):
         booking.status = "confirmed"
         booking.approved_by = request.user
         booking.approved_at = timezone.now()
+        booking.admin2_comment = request.data.get("admin2_comment", booking.admin2_comment)
         booking.save()
         if booking.student_course:
             sc = booking.student_course

@@ -77,6 +77,8 @@ class ExamBooking(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="exam_bookings_approved"
     )
     approved_at = models.DateTimeField(null=True, blank=True)
+    admin1_comment = models.TextField(blank=True)
+    admin2_comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
