@@ -3,13 +3,14 @@ import {
   ChevronDown, ChevronUp, CalendarDays, MapPin,
   Users, ShieldAlert, CheckCircle, XCircle, Loader2,
   Download, UserMinus, Search, ChevronLeft, ChevronRight,
-  MessageSquare, ThumbsUp, UserCheck, Clock,
+  MessageSquare, ThumbsUp, UserCheck, Clock, Pencil,
 } from "lucide-react";
 import { Btn, Badge } from "../../ui";
 import { SearchableSelect } from "../../ui/SearchableSelect";
 import { fmtDate, getCourseStatus } from "../../utils/students.utils";
 import { examsAPI } from "../../api/exams.api";
 import { branchesAPI } from "../../api/branches.api";
+import { toast } from "../../pages/Exams";
 
 const PAGE_SIZE = 20;
 
@@ -107,45 +108,84 @@ function BranchBadge({ name }) {
 function CommentsPanel({ booking, isSuperAdmin, onApprove, onSaveComment, actionLoading }) {
   const [draft1, setDraft1] = useState(booking.admin1_comment ?? "");
   const [draft2, setDraft2] = useState(booking.admin2_comment ?? "");
+  const [editing1, setEditing1] = useState(!booking.admin1_comment);
+  const [editing2, setEditing2] = useState(!booking.admin2_comment);
   const [saving1, setSaving1] = useState(false);
   const [saving2, setSaving2] = useState(false);
   const isLoading = actionLoading === booking.id;
   const isPending = booking.status !== "confirmed";
 
-  const handleSave1 = async () => { setSaving1(true); await onSaveComment(booking, { admin1_comment: draft1 }); setSaving1(false); };
-  const handleSave2 = async () => { setSaving2(true); await onSaveComment(booking, { admin2_comment: draft2 }); setSaving2(false); };
+  const handleSave1 = async () => {
+    setSaving1(true);
+    const ok = await onSaveComment(booking, { admin1_comment: draft1 });
+    setSaving1(false);
+    if (ok) { setEditing1(false); toast({ variant: "success", title: "Note saved" }); }
+    else toast({ variant: "error", title: "Failed to save note" });
+  };
+
+  const handleSave2 = async () => {
+    setSaving2(true);
+    const ok = await onSaveComment(booking, { admin2_comment: draft2 });
+    setSaving2(false);
+    if (ok) { setEditing2(false); toast({ variant: "success", title: "Note saved" }); }
+    else toast({ variant: "error", title: "Failed to save note" });
+  };
+
   const handleApproveClick = () => onApprove(booking, draft2);
 
   return (
     <tr className="bg-red-50/30 border-b border-gray-100">
       <td colSpan={9} className="px-5 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
           {/* Admin 1 note */}
           <div className="bg-white rounded-xl border border-gray-200 p-3">
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5 flex items-center gap-1.5">
               <MessageSquare className="w-3 h-3" /> Admin 1 note
             </p>
             {isSuperAdmin ? (
-              <>
-                <textarea
-                  rows={2}
-                  value={draft1}
-                  onChange={(e) => setDraft1(e.target.value)}
-                  placeholder="Note when student was added to exam list…"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 resize-none
-                    focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-red-300 transition-all"
-                />
-                <button
-                  disabled={saving1}
-                  onClick={handleSave1}
-                  className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg
-                    border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100
-                    disabled:opacity-50 transition-all"
-                >
-                  {saving1 ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
-                  Save note
-                </button>
-              </>
+              editing1 ? (
+                <>
+                  <textarea
+                    rows={2}
+                    value={draft1}
+                    onChange={(e) => setDraft1(e.target.value)}
+                    placeholder="Note when student was added to exam list…"
+                    className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 resize-none
+                      focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-red-300 transition-all"
+                  />
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <button
+                      disabled={saving1}
+                      onClick={handleSave1}
+                      style={{ background: BRAND_GRADIENT, boxShadow: BRAND_SHADOW }}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg
+                        text-white disabled:opacity-50 transition-all hover:brightness-110"
+                    >
+                      {saving1 ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                      Save note
+                    </button>
+                    {draft1 && (
+                      <button onClick={() => setEditing1(false)} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed flex-1">
+                    {draft1 || <span className="text-gray-300 italic">No note.</span>}
+                  </p>
+                  <button
+                    onClick={() => setEditing1(true)}
+                    title="Edit note"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-[#c41820] hover:bg-red-50 transition-all shrink-0"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )
             ) : (
               <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                 {booking.admin1_comment || <span className="text-gray-300 italic">No note.</span>}
@@ -159,38 +199,60 @@ function CommentsPanel({ booking, isSuperAdmin, onApprove, onSaveComment, action
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-1.5 flex items-center gap-1.5">
                 <ThumbsUp className="w-3 h-3" /> Admin 2 note
               </p>
-              <textarea
-                rows={2}
-                value={draft2}
-                onChange={(e) => setDraft2(e.target.value)}
-                placeholder="Optional note before approving…"
-                className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 resize-none
-                  focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-red-300 transition-all"
-              />
-              <div className="mt-1.5 flex items-center gap-2">
-                {isPending && (
+              {editing2 ? (
+                <>
+                  <textarea
+                    rows={2}
+                    value={draft2}
+                    onChange={(e) => setDraft2(e.target.value)}
+                    placeholder="Optional note before approving…"
+                    className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 resize-none
+                      focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-red-300 transition-all"
+                  />
+                  <div className="mt-1.5 flex items-center gap-2">
+                    {isPending && (
+                      <button
+                        disabled={isLoading}
+                        onClick={handleApproveClick}
+                        style={{ background: BRAND_GRADIENT, boxShadow: BRAND_SHADOW }}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg
+                          text-white disabled:opacity-50 transition-all hover:brightness-110"
+                      >
+                        {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                        Approve booking
+                      </button>
+                    )}
+                    <button
+                      disabled={saving2}
+                      onClick={handleSave2}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg
+                        border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100
+                        disabled:opacity-50 transition-all"
+                    >
+                      {saving2 ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
+                      Save note
+                    </button>
+                    {draft2 && (
+                      <button onClick={() => setEditing2(false)} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed flex-1">
+                    {draft2 || <span className="text-gray-300 italic">No note.</span>}
+                  </p>
                   <button
-                    disabled={isLoading}
-                    onClick={handleApproveClick}
-                    style={{ background: BRAND_GRADIENT, boxShadow: BRAND_SHADOW }}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg
-                      text-white disabled:opacity-50 transition-all hover:brightness-110"
+                    onClick={() => setEditing2(true)}
+                    title="Edit note"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-[#c41820] hover:bg-red-50 transition-all shrink-0"
                   >
-                    {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                    Approve booking
+                    <Pencil className="w-3.5 h-3.5" />
                   </button>
-                )}
-                <button
-                  disabled={saving2}
-                  onClick={handleSave2}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg
-                    border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100
-                    disabled:opacity-50 transition-all"
-                >
-                  {saving2 ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
-                  Save note
-                </button>
-              </div>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -123,7 +123,7 @@ export default function AdminStudents() {
             disabled={refreshState !== "idle"}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all shadow-sm ${
               refreshState === "done"
-                ? "bg-blue-600 text-white border border-blue-600"
+                ? "bg-[#1a0a0b] text-white border border-[#1a0a0b]"
                 : "border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             }`}
           >

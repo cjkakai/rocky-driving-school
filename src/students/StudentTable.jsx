@@ -230,7 +230,8 @@ function StudentRow({
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleView}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[#1a0a0b] hover:bg-[#2d1214] text-white rounded-lg transition-all shadow-sm whitespace-nowrap"
+            style={{ background: "linear-gradient(135deg, #8f1017, #c41820)", boxShadow: "0 4px 14px rgba(196,24,32,0.32)" }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all hover:brightness-110 whitespace-nowrap"
           >
             <Eye className="w-3.5 h-3.5" /> View
           </button>

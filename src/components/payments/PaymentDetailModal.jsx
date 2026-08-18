@@ -4,6 +4,14 @@ import { Modal, Btn } from "../../ui";
 import { paymentsAPI } from "../../api/payments.api";
 import { DetailRow, METHOD_LABELS } from "./paymentUtils";
 
+const BRAND_GRADIENT = "linear-gradient(135deg, #8f1017, #c41820)";
+
+const SOURCE_LABELS = {
+  bank_ipn: "Bank IPN",
+  bank_b2b: "Bank B2B",
+  coop_stk: "STK Push",
+};
+
 export function PaymentDetailModal({ paymentId, onClose }) {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,17 +29,23 @@ export function PaymentDetailModal({ paymentId, onClose }) {
     <Modal open onClose={onClose} title="Transaction Detail" maxWidth="max-w-lg">
       {loading ? (
         <div className="py-12 flex justify-center">
-          <Loader2 className="animate-spin text-gray-400" />
+          <Loader2 className="animate-spin text-red-400" />
         </div>
       ) : !detail ? (
         <p className="text-sm text-red-500">Failed to load.</p>
       ) : (
         <div className="space-y-5">
           {sd ? (
-            <div className="bg-gray-50 rounded-2xl p-4 space-y-0.5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                Payment Source
-              </p>
+            <div className="rounded-2xl border border-gray-100 overflow-hidden">
+              <div className="px-4 py-3 flex items-center justify-between" style={{ background: BRAND_GRADIENT }}>
+                <p className="text-xs font-bold uppercase tracking-widest text-white/90">
+                  Payment Source
+                </p>
+                <span className="text-[11px] font-semibold text-white/80 bg-white/15 px-2 py-0.5 rounded-full">
+                  {SOURCE_LABELS[sd.source] ?? sd.source}
+                </span>
+              </div>
+              <div className="bg-gray-50 p-4 space-y-0.5">
               {sd.source === "bank_ipn" && (
                 <>
                   <DetailRow label="Transaction ID" value={sd.transaction_id} />
@@ -86,6 +100,7 @@ export function PaymentDetailModal({ paymentId, onClose }) {
                   <DetailRow label="M-Pesa Receipt" value={sd.mpesa_receipt} />
                 </>
               )}
+              </div>
             </div>
           ) : (
             <p className="text-sm text-gray-400">No source data available.</p>

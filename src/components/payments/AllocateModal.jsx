@@ -4,6 +4,8 @@ import { Modal, Input, Btn } from "../../ui";
 import { paymentsAPI } from "../../api/payments.api";
 import { fmt } from "../../utils/students.utils";
 
+const BRAND_GRADIENT = "linear-gradient(135deg, #8f1017, #c41820)";
+
 export function AllocateModal({ payment, onClose, onSuccess }) {
   const [ref, setRef] = useState("");
   const [results, setResults] = useState([]);
@@ -53,16 +55,19 @@ export function AllocateModal({ payment, onClose, onSuccess }) {
     <Modal open onClose={onClose} title="Allocate Payment" maxWidth="max-w-lg">
       <div className="space-y-4">
         {/* Payment info */}
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 grid grid-cols-2 gap-3">
-          <div>
-            <p className="text-xs text-gray-400 mb-0.5">Reference</p>
-            <p className="font-mono text-sm font-semibold text-gray-800">
-              {payment.payment_reference ?? payment.id}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 mb-0.5">Amount</p>
-            <p className="text-sm font-bold text-green-700">{fmt(payment.amount)}</p>
+        <div className="rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="h-1 w-full" style={{ background: BRAND_GRADIENT }} />
+          <div className="bg-gray-50 p-4 grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Reference</p>
+              <p className="font-mono text-sm font-semibold text-gray-800">
+                {payment.payment_reference ?? payment.id}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Amount</p>
+              <p className="text-sm font-bold text-green-700">{fmt(payment.amount)}</p>
+            </div>
           </div>
         </div>
 
@@ -74,7 +79,7 @@ export function AllocateModal({ payment, onClose, onSuccess }) {
 
         {searching && (
           <div className="flex items-center gap-2 text-xs text-gray-400 py-1">
-            <Loader2 className="w-3 h-3 animate-spin" /> Searching...
+            <Loader2 className="w-3 h-3 animate-spin text-red-400" /> Searching...
           </div>
         )}
 
@@ -86,13 +91,13 @@ export function AllocateModal({ payment, onClose, onSuccess }) {
                 onClick={() => setSelected(r)}
                 className={`w-full text-left px-4 py-3 transition-colors ${
                   selected?.id === r.id
-                    ? "bg-blue-50 border-l-2 border-blue-500"
+                    ? "bg-red-50 border-l-2 border-[#c41820]"
                     : "hover:bg-gray-50"
                 }`}
               >
                 <p className="text-sm font-semibold text-gray-800">{r.student_name}</p>
                 <p className="text-xs text-gray-500 mt-0.5">{r.course_name}</p>
-                <p className="font-mono text-xs text-blue-600 mt-0.5">{r.payment_reference}</p>
+                <p className="font-mono text-xs text-[#c41820] mt-0.5">{r.payment_reference}</p>
               </button>
             ))}
           </div>

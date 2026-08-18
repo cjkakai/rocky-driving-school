@@ -3,6 +3,10 @@ import { Btn } from "../../ui";
 import { DateCell, StatusBadge, PaymentTypeBadge } from "./paymentUtils";
 import { fmt } from "../../utils/students.utils";
 
+const GRAD   = "linear-gradient(135deg, #8f1017, #c41820)";
+const SHADOW = "0 4px 14px rgba(196,24,32,0.32)";
+const HEADER_GRADIENT = "#1a0a0b";
+
 export function PaymentsTable({
   payments,
   loading,
@@ -18,9 +22,9 @@ export function PaymentsTable({
   onPrintReceipt,
 }) {
   return (
-    <div className="bg-white border border-gray-200 overflow-hidden">
+    <div className="bg-white border border-gray-200 shadow-sm overflow-hidden">
       {loading ? (
-        <div className="py-20 flex justify-center text-gray-300">
+        <div className="py-20 flex justify-center text-red-300">
           <Loader2 className="w-6 h-6 animate-spin" />
         </div>
       ) : error ? (
@@ -34,7 +38,7 @@ export function PaymentsTable({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b" style={{ background: "#1a0a0b" }}>
+              <tr className="border-b" style={{ background: HEADER_GRADIENT }}>
                 {[
                   "Transaction",
                   "Channel",
@@ -49,7 +53,7 @@ export function PaymentsTable({
                 ].map((h) => (
                   <th
                     key={h}
-                  className="px-4 py-3 text-left text-[10px] font-extrabold text-white/60 uppercase tracking-widest whitespace-nowrap"
+                  className="px-4 py-3 text-left text-[10px] font-extrabold text-white/70 uppercase tracking-widest whitespace-nowrap"
                   >
                     {h}
                   </th>
@@ -125,32 +129,30 @@ export function PaymentsTable({
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 justify-end">
                       {isSuperAdmin && (
-                        <Btn
-                          size="sm"
-                          variant="outline"
+                        <button
                           onClick={() => onViewDetail(p.id)}
-                          className="text-xs"
+                          style={{ background: GRAD, boxShadow: SHADOW }}
+                          className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:brightness-110"
                         >
                           View
-                        </Btn>
+                        </button>
                       )}
                       {isSuperAdmin && filterStatus === "orphaned" && (
-                        <Btn
-                          size="sm"
-                          variant="outline"
+                        <button
                           onClick={() => onAllocate(p)}
-                          className="text-xs"
+                          style={{ background: GRAD, boxShadow: SHADOW }}
+                          className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:brightness-110"
                         >
                           Allocate
-                        </Btn>
+                        </button>
                       )}
-                      <Btn
-                        size="sm"
-                        variant="outline"
+                      <button
                         onClick={() => onPrintReceipt(p)}
+                        style={{ background: GRAD, boxShadow: SHADOW }}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white transition-all hover:brightness-110"
                       >
                         <Printer className="w-3.5 h-3.5" />
-                      </Btn>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -170,7 +172,7 @@ export function PaymentsTable({
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="p-1.5 rounded-lg bg-[#1a0a0b] text-white hover:bg-[#3d1a1c] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg bg-[#1a0a0b] text-white disabled:opacity-30 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -180,7 +182,7 @@ export function PaymentsTable({
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="p-1.5 rounded-lg bg-[#1a0a0b] text-white hover:bg-[#3d1a1c] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg bg-[#1a0a0b] text-white disabled:opacity-30 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

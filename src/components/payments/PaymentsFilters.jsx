@@ -3,6 +3,9 @@ import { X, ChevronDown, Check, Search } from "lucide-react";
 import { Input } from "../../ui";
 import { SearchableSelect } from "../../ui/SearchableSelect";
 
+const GRAD = "linear-gradient(135deg, #8f1017, #c41820)";
+const SHADOW = "0 4px 14px rgba(196,24,32,0.32)";
+
 const statusOptions = [
   { label: "All", value: "" },
   { label: "Completed", value: "completed", badgeClass: "bg-emerald-50 text-emerald-800 border border-emerald-200" },
@@ -44,7 +47,8 @@ function FilterDropdown({ label, options, value, onChange }) {
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1a0a0b] text-white shadow-sm transition-all"
+        style={{ background: GRAD, boxShadow: SHADOW }}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:brightness-110"
       >
         <span className="opacity-75">{label}:</span>
         <span>{active.label}</span>
@@ -93,74 +97,77 @@ export function PaymentsFilters({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 space-y-3">
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-          <Input
-            className="pl-9 border-gray-200 bg-gray-50/60 focus:ring-gray-200 focus:border-gray-300"
-            placeholder="Search by reference, M-PESA ref, name or admission number..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          />
-        </div>
-        {isSuperAdmin && (
-          <div className="sm:w-52">
-            <SearchableSelect
-              value={filterBranch}
-              onChange={(v) => { setFilterBranch(v); setPage(1); }}
-              options={branches.map((b) => ({ value: String(b.id), label: b.name }))}
-              placeholder="All Branches"
-              triggerClassName="py-2"
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06)" }}>
+      <div className="px-4 py-3 space-y-3">
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Input
+              className="pl-9 border-gray-200 bg-gray-50/60 focus:ring-gray-200 focus:border-gray-300"
+              placeholder="Search by reference, M-PESA ref, name or admission number..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 pt-0.5">
-        {isSuperAdmin && (
-          <FilterDropdown
-            label="Status"
-            options={statusOptions}
-            value={filterStatus}
-            onChange={(v) => { setFilterStatus(v); setPage(1); }}
-          />
-        )}
-        <FilterDropdown
-          label="Channel"
-          options={channelOptions}
-          value={filterChannel}
-          onChange={(v) => { setFilterChannel(v); setPage(1); }}
-        />
-
-        <div className="w-px h-5 bg-gray-200 mx-1" />
-
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-          {typePills.map(p => (
-            <button
-              key={p.value}
-              type="button"
-              onClick={() => { setFilterPaymentType(p.value); setPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                filterPaymentType === p.value
-                  ? "bg-[#1a0a0b] text-white shadow-sm"
-                  : "text-gray-500 hover:text-gray-800"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+          {isSuperAdmin && (
+            <div className="sm:w-52">
+              <SearchableSelect
+                value={filterBranch}
+                onChange={(v) => { setFilterBranch(v); setPage(1); }}
+                options={branches.map((b) => ({ value: String(b.id), label: b.name }))}
+                placeholder="All Branches"
+                triggerClassName="py-2"
+              />
+            </div>
+          )}
         </div>
 
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={clearAll}
-            className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium border border-red-200 transition-colors ml-auto"
-          >
-            <X className="w-3.5 h-3.5" /> Clear filters
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-2 pt-0.5">
+          {isSuperAdmin && (
+            <FilterDropdown
+              label="Status"
+              options={statusOptions}
+              value={filterStatus}
+              onChange={(v) => { setFilterStatus(v); setPage(1); }}
+            />
+          )}
+          <FilterDropdown
+            label="Channel"
+            options={channelOptions}
+            value={filterChannel}
+            onChange={(v) => { setFilterChannel(v); setPage(1); }}
+          />
+
+          <div className="w-px h-5 bg-gray-200 mx-1" />
+
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+            {typePills.map(p => (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => { setFilterPaymentType(p.value); setPage(1); }}
+                style={filterPaymentType === p.value ? { background: GRAD, boxShadow: SHADOW } : undefined}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  filterPaymentType === p.value ? "text-white" : "text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium border border-red-200 transition-colors ml-auto"
+            >
+              <X className="w-3.5 h-3.5" /> Clear filters
+            </button>
+          )}
+        </div>
+
       </div>
     </div>
   );

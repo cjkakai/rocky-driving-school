@@ -70,7 +70,7 @@ export function StudentFilters({ filters, onChange, onChangePeriod, branches, co
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06)" }}>
 
       {/* ── Top accent strip ── */}
-      <div className="h-1 w-full rounded-t-2xl" style={{ background: "linear-gradient(90deg, #1a0a0b, #3d1a1c, #c41820)" }} />
+      <div className="h-1 w-full rounded-t-2xl" style={{ background: "linear-gradient(135deg, #8f1017, #c41820)" }} />
 
       {/* ── Header ── */}
       <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white">
@@ -105,10 +105,11 @@ export function StudentFilters({ filters, onChange, onChangePeriod, branches, co
                 key={tab.value || "default"}
                 type="button"
                 onClick={() => onChange("filterStatus", tab.value)}
+                style={isActive ? { background: "linear-gradient(135deg, #8f1017, #c41820)", boxShadow: "0 4px 14px rgba(196,24,32,0.32)" } : undefined}
                 className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
                   isActive
-                    ? "bg-[#1a0a0b] text-white border-[#1a0a0b] shadow-sm"
-                    : "bg-white text-slate-500 border-slate-200 hover:border-[#1a0a0b] hover:text-[#1a0a0b]"
+                    ? "text-white border-transparent"
+                    : "bg-white text-slate-500 border-slate-200 hover:border-[#c41820] hover:text-[#c41820]"
                 }`}
               >
                 {tab.label}
@@ -131,10 +132,11 @@ export function StudentFilters({ filters, onChange, onChangePeriod, branches, co
               <button
                 key={q.label}
                 onClick={() => onChangePeriod({ dateFrom: q.dateFrom, dateTo: q.dateTo })}
+                style={activeQuick === q.label ? { background: "linear-gradient(135deg, #8f1017, #c41820)", boxShadow: "0 4px 14px rgba(196,24,32,0.32)" } : undefined}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                   activeQuick === q.label
-                    ? "bg-[#1a0a0b] text-white border-[#1a0a0b] shadow-sm"
-                    : "bg-white text-slate-500 border-slate-200 hover:border-[#1a0a0b] hover:text-[#1a0a0b]"
+                    ? "text-white border-transparent"
+                    : "bg-white text-slate-500 border-slate-200 hover:border-[#c41820] hover:text-[#c41820]"
                 }`}
               >
                 {q.label}
@@ -212,10 +214,11 @@ export function StudentFilters({ filters, onChange, onChangePeriod, branches, co
                   key={opt.value || "all-cs"}
                   type="button"
                   onClick={() => onChange("filterCourseStatus", opt.value)}
+                  style={isActive ? { background: "linear-gradient(135deg, #8f1017, #c41820)", boxShadow: "0 4px 14px rgba(196,24,32,0.32)" } : undefined}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                     isActive
-                      ? "bg-[#1a0a0b] text-white border-[#1a0a0b] shadow-sm"
-                      : "bg-white text-slate-500 border-slate-200 hover:border-[#1a0a0b] hover:text-[#1a0a0b]"
+                      ? "text-white border-transparent"
+                      : "bg-white text-slate-500 border-slate-200 hover:border-[#c41820] hover:text-[#c41820]"
                   }`}
                 >
                   {opt.label}

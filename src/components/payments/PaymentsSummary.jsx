@@ -7,7 +7,9 @@ import {
 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { fmt } from "../../utils/students.utils";
-import { TYPE_CONFIG, HERO_ACCENTS } from "./paymentUtils";
+import { TYPE_CONFIG } from "./paymentUtils";
+
+const CARD_SHADOW = "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06)";
 
 // ─── Count-up hook ─────────────────────────────────────────────────────────────
 
@@ -64,6 +66,29 @@ function DonutTooltip({ active, payload }) {
   );
 }
 
+// ─── Stat tile — matches StatsCard.jsx / StudentSummary.jsx look ──────────────
+
+function StatTile({ icon: Icon, label, value, subtext, accent }) {
+  return (
+    <div className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: accent }} />
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110"
+            style={{ background: `${accent}14`, color: accent }}
+          >
+            <Icon className="w-4 h-4" />
+          </div>
+        </div>
+        <p className="text-2xl font-black text-gray-900 tabular-nums leading-none">{value}</p>
+        {subtext && <p className="text-[11px] text-gray-400 mt-1.5 font-medium">{subtext}</p>}
+      </div>
+    </div>
+  );
+}
+
 // ─── Summary ───────────────────────────────────────────────────────────────────
 
 export function PaymentsSummary({ summary, isSuperAdmin }) {
@@ -105,21 +130,21 @@ export function PaymentsSummary({ summary, isSuperAdmin }) {
       label: "Total collected",
       value: fmt(totalRevenue),
       sub: "This period",
-      accent: HERO_ACCENTS.revenue,
+      accent: "#1a0a0b",
       icon: DollarSign,
     },
     {
       label: "Total payments",
       value: cTotal,
       sub: "All types",
-      accent: HERO_ACCENTS.total,
+      accent: "#475569",
       icon: CreditCard,
     },
     {
       label: "Completed",
       value: cComp,
       sub: `${totalCount > 0 ? Math.round((completed / totalCount) * 100) : 0}% of total`,
-      accent: HERO_ACCENTS.completed,
+      accent: "#059669",
       icon: CheckCircle2,
     },
     ...(isSuperAdmin
@@ -127,7 +152,7 @@ export function PaymentsSummary({ summary, isSuperAdmin }) {
           label: "Orphaned",
           value: cOrph,
           sub: "Needs allocation",
-          accent: HERO_ACCENTS.orphaned,
+          accent: "#c41820",
           icon: AlertCircle,
         }]
       : []),
@@ -144,173 +169,125 @@ export function PaymentsSummary({ summary, isSuperAdmin }) {
 
       {/* ── Hero row ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {heroCards.map(({ label, value, sub, accent, icon: Icon }) => (
-          <div
-            key={label}
-            className="relative overflow-hidden rounded-xl p-4 flex items-start gap-3"
-            style={{ background: accent.bg, boxShadow: accent.shadow }}
-          >
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(160deg, rgba(255,255,255,0.10) 0%, transparent 55%)",
-              }}
-            />
-            <div
-              className="relative w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
-              style={{ background: accent.iconBg }}
-            >
-              <Icon className="w-4 h-4 text-white" />
-            </div>
-            <div className="relative min-w-0">
-              <p className="text-xs text-white/70 uppercase tracking-wide font-semibold mb-0.5">
-                {label}
-              </p>
-              <p className="text-2xl font-bold text-white tabular-nums leading-none">
-                {value}
-              </p>
-              <p className="text-xs text-white/60 mt-1">{sub}</p>
-            </div>
-          </div>
+        {heroCards.map(({ label, value, sub, accent, icon }) => (
+          <StatTile key={label} label={label} value={value} subtext={sub} accent={accent} icon={icon} />
         ))}
       </div>
 
-      {/* ── Bottom: donut + breakdown ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-3">
-
-        {/* Donut */}
-        <div className="bg-white rounded-xl border border-blue-100 p-4 flex flex-col items-center">
-          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-3 self-start">
-            By type
-          </p>
-          <div className="relative">
-            <PieChart width={120} height={120}>
-              <Pie
-                data={
-                  donutData.length
-                    ? donutData
-                    : [{ name: "None", value: 1, color: "#e5e7eb" }]
-                }
-                dataKey="value"
-                nameKey="name"
-                cx={60} cy={60}
-                innerRadius={36}
-                outerRadius={54}
-                stroke="none"
-                paddingAngle={donutData.length > 1 ? 2 : 0}
-              >
-                {(donutData.length ? donutData : [{ color: "#e5e7eb" }]).map((d, i) => (
-                  <Cell key={i} fill={d.color} />
-                ))}
-              </Pie>
-              <Tooltip content={<DonutTooltip />} />
-            </PieChart>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-lg font-bold text-gray-900 tabular-nums leading-none">
-                {cTotal}
-              </span>
-              <span className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mt-0.5">
-                Total
-              </span>
-            </div>
+      {/* ── Bottom: donut + breakdown, one unified card ── */}
+      <div
+        className="bg-white rounded-2xl border border-gray-200 overflow-hidden"
+        style={{ boxShadow: CARD_SHADOW }}
+      >
+        {/* Card header */}
+        <div className="px-6 py-3.5 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-1 h-5 rounded-full" style={{ background: "#1a0a0b" }} />
+            <p className="text-sm font-bold text-gray-800">Payment breakdown</p>
           </div>
-          <div className="flex flex-col gap-1.5 w-full mt-3">
-            {Object.entries(TYPE_CONFIG).map(([key, cfg]) => {
-              const val = byType[key]?.count ?? 0;
-              if (!val) return null;
-              return (
-                <div key={key} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ background: cfg.color }}
-                    />
-                    <span className="text-gray-500">{cfg.label}</span>
-                  </div>
-                  <span className="font-semibold text-gray-700 tabular-nums">{val}</span>
-                </div>
-              );
-            })}
-          </div>
+          {totalCount > 0 && (
+            <span className="text-[11px] text-gray-400 tabular-nums font-medium">
+              {totalCount} total
+            </span>
+          )}
         </div>
 
-        {/* ── Breakdown table ── */}
-        <div className="bg-white rounded-xl border border-blue-100 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr]">
 
-          {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">
-              Payment breakdown
+          {/* Donut panel */}
+          <div className="flex flex-col items-center p-6 lg:border-r border-gray-100">
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-3 self-start">
+              By type
             </p>
-            {totalCount > 0 && (
-              <span className="text-xs text-gray-400 tabular-nums">
-                {totalCount} total
-              </span>
-            )}
+            <div className="relative">
+              <PieChart width={130} height={130}>
+                <Pie
+                  data={
+                    donutData.length
+                      ? donutData
+                      : [{ name: "None", value: 1, color: "#e5e7eb" }]
+                  }
+                  dataKey="value"
+                  nameKey="name"
+                  cx={65} cy={65}
+                  innerRadius={40}
+                  outerRadius={58}
+                  stroke="none"
+                  paddingAngle={donutData.length > 1 ? 2 : 0}
+                >
+                  {(donutData.length ? donutData : [{ color: "#e5e7eb" }]).map((d, i) => (
+                    <Cell key={i} fill={d.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<DonutTooltip />} />
+              </PieChart>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-xl font-black text-gray-900 tabular-nums leading-none">
+                  {cTotal}
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mt-0.5">
+                  Total
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 w-full mt-3">
+              {Object.entries(TYPE_CONFIG).map(([key, cfg]) => {
+                const val = byType[key]?.count ?? 0;
+                if (!val) return null;
+                return (
+                  <div key={key} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: cfg.color }}
+                      />
+                      <span className="text-gray-500">{cfg.label}</span>
+                    </div>
+                    <span className="font-bold tabular-nums" style={{ color: cfg.color }}>{val}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {breakdownRows.length === 0 ? (
-            <div className="py-12 text-center text-sm text-gray-300">No data</div>
-          ) : (
-            <div className="divide-y divide-gray-50">
-              {breakdownRows.map(({ key, count, revenue }) => {
-                const cfg   = TYPE_CONFIG[key];
-                const share = totalCount > 0
-                  ? Math.round(((count ?? 0) / totalCount) * 100)
-                  : 0;
-                const revShare = revenue != null && maxRevenue > 0
-                  ? Math.round((revenue / maxRevenue) * 100)
-                  : 0;
-                const hex   = cfg.color;
+          {/* Breakdown rows */}
+          <div className="flex flex-col">
+            {breakdownRows.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center py-12 text-sm text-gray-300">
+                No data
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {breakdownRows.map(({ key, count, revenue }) => {
+                  const cfg   = TYPE_CONFIG[key];
+                  const share = totalCount > 0
+                    ? Math.round(((count ?? 0) / totalCount) * 100)
+                    : 0;
+                  const revShare = revenue != null && maxRevenue > 0
+                    ? Math.round((revenue / maxRevenue) * 100)
+                    : 0;
+                  const hex = cfg.color;
 
-                // Very light tint of type colour for row background
-                const rowBg = `${hex}08`;
-                const rowBgHover = `${hex}14`;
-
-                return (
-                  <div
-                    key={key}
-                    className="group px-4 py-3 transition-colors duration-150 cursor-default"
-                    style={{ background: rowBg }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = rowBgHover)}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = rowBg)}
-                  >
-                    <div className="flex items-center gap-4">
-
-                      {/* Colour bar + label */}
-                      <div className="flex items-center gap-2.5 w-36 shrink-0">
-                        <div
-                          className="w-1 rounded-full shrink-0 self-stretch min-h-[32px]"
-                          style={{ background: hex }}
-                        />
+                  return (
+                    <div key={key} className="px-6 py-4 flex items-center gap-5">
+                      <div className="flex items-center gap-3 w-36 shrink-0">
+                        <div className="w-1 self-stretch rounded-full min-h-[32px]" style={{ background: hex }} />
                         <div>
-                          <p className="text-sm font-semibold text-gray-800 leading-none">
-                            {cfg.label}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5 tabular-nums">
-                            {count ?? 0}{" "}
-                          </p>
+                          <p className="text-sm font-semibold text-gray-600 leading-none">{cfg.label}</p>
+                          <p className="text-xs text-gray-400 mt-0.5 tabular-nums">{count ?? 0}</p>
                         </div>
                       </div>
 
-                      {/* Revenue + bar */}
                       <div className="flex-1 min-w-0">
                         {revenue != null ? (
                           <>
-                            <div className="flex items-center justify-between mb-1">
-                              <span
-                                className="text-sm font-bold tabular-nums"
-                                style={{ color: hex }}
-                              >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-black tabular-nums text-gray-900">
                                 {fmt(revenue)}
                               </span>
                               <span
-                                className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full"
-                                style={{
-                                  background: `${hex}18`,
-                                  color: hex,
-                                }}
+                                className="text-[11px] font-bold px-1.5 py-0.5 rounded-full"
+                                style={{ background: `${hex}18`, color: hex }}
                               >
                                 {share}%
                               </span>
@@ -319,28 +296,22 @@ export function PaymentsSummary({ summary, isSuperAdmin }) {
                           </>
                         ) : (
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-300 italic">
-                              Pending allocation
-                            </span>
+                            <span className="text-xs text-gray-300 italic">Pending allocation</span>
                             <span
-                              className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full"
-                              style={{
-                                background: `${hex}18`,
-                                color: hex,
-                              }}
+                              className="text-[11px] font-bold px-1.5 py-0.5 rounded-full"
+                              style={{ background: `${hex}18`, color: hex }}
                             >
                               {share}%
                             </span>
                           </div>
                         )}
                       </div>
-
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
