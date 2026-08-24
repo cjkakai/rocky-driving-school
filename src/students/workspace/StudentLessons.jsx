@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
-import { GraduationCap, Plus, Loader2, Clock, CheckCircle, Calendar } from "lucide-react";
+import { GraduationCap, Plus, Loader2, Clock, CheckCircle, Calendar, Printer } from "lucide-react";
 import { RadialBarChart, RadialBar, PolarAngleAxis, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts";
 import { lessonsAPI } from "../../api/lessons.api";
 import { fmtDate } from "../../utils/students.utils";
@@ -29,6 +29,74 @@ function fmtTime12(t) {
   const ampm = h >= 12 ? "PM" : "AM";
   const h12 = h % 12 || 12;
   return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+function printLessonSlip(lesson, student) {
+  const printed = new Date().toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Nairobi" });
+  const time = lesson.start_time && lesson.end_time
+    ? `${fmtTime12(lesson.start_time)} – ${fmtTime12(lesson.end_time)}`
+    : "—";
+  const win = window.open("", "_blank", "width=760,height=900");
+  win.document.write(`<!DOCTYPE html><html><head><title>Lesson Slip</title><style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+    body { margin: 0; padding: 0; background: #fff; font-family: 'Inter', Arial, sans-serif; }
+    .slip { width: 80mm; min-width: 80mm; padding: 14px 12px; font-size: 11px; line-height: 1.45; color: #111; position: relative; }
+    .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-45deg); font-size: 52px; font-weight: 900; color: rgba(0,0,0,0.10); text-transform: uppercase; white-space: nowrap; pointer-events: none; z-index: 1; letter-spacing: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .content { position: relative; z-index: 2; }
+    .header { text-align: center; margin-bottom: 10px; }
+    .logo { width: 56px; height: 56px; object-fit: contain; margin: 0 auto 5px; display: block; }
+    .title { font-size: 15px; font-weight: 900; margin: 3px 0; letter-spacing: 0.8px; text-transform: uppercase; }
+    .subtitle { font-size: 11px; font-weight: 700; margin: 2px 0; color: #444; }
+    .divider-thick { border: none; border-top: 2px solid #111; margin: 9px 0; }
+    .divider { border: none; border-top: 1.5px dashed #aaa; margin: 9px 0; }
+    .section-title { font-size: 10px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; text-align: center; margin-bottom: 6px; color: #333; }
+    .row { display: flex; justify-content: space-between; align-items: baseline; margin: 3.5px 0; font-size: 10.5px; }
+    .label { color: #555; font-weight: 500; }
+    .value { font-weight: 700; text-align: right; color: #111; }
+    .type-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: #f0f0f0; border: 1.5px solid #ccc; }
+    .footer { text-align: center; margin-top: 12px; }
+    .footer p { margin: 2px 0; font-size: 9.5px; color: #555; }
+    .thank-you { font-weight: 900; font-size: 13px; margin: 4px 0 8px; }
+    .timestamp { font-size: 9px; color: #aaa; margin-top: 6px; }
+    .copy-label { font-size: 8px; font-weight: 800; text-transform: uppercase; color: #bbb; letter-spacing: 1.5px; margin-top: 5px; }
+    @media print { @page { size: 80mm auto; margin: 0; } }
+  </style></head><body>
+    <div class="slip">
+      <div class="watermark">lesson slip</div>
+      <div class="content">
+        <div class="header">
+          <img src="/images.png" alt="Rocky Driving School" class="logo" />
+          <h1 class="title">Rocky Driving School</h1>
+          <p class="subtitle">Lesson Attendance Slip</p>
+        </div>
+        <div class="divider-thick"></div>
+        <div class="section-title">Student Details</div>
+        <div class="row"><span class="label">Name:</span><span class="value">${student.full_name || "—"}</span></div>
+        <div class="row"><span class="label">Admission No:</span><span class="value">${student.admission_number || "—"}</span></div>
+        <div class="row"><span class="label">Course:</span><span class="value">${lesson.course_name || "—"}</span></div>
+        <div class="divider"></div>
+        <div class="section-title">Lesson Details</div>
+        <div class="row"><span class="label">Date:</span><span class="value">${lesson.date || "—"}</span></div>
+        <div class="row"><span class="label">Time:</span><span class="value">${time}</span></div>
+        <div class="row"><span class="label">Duration:</span><span class="value">${fmtDuration(lesson.duration_minutes)}</span></div>
+        <div class="row"><span class="label">Type:</span><span class="value"><span class="type-badge">${(lesson.lesson_type || "—").replace("_", " ")}</span></span></div>
+        <div class="row"><span class="label">Instructor:</span><span class="value">${lesson.instructor_name || "—"}</span></div>
+        <div class="row"><span class="label">Vehicle:</span><span class="value">${lesson.vehicle_display || "—"}</span></div>
+        <div class="row"><span class="label">Status:</span><span class="value">${lesson.status || "—"}</span></div>
+        ${lesson.notes ? `<div class="divider"></div><div class="section-title">Notes</div><div style="font-size:10px;color:#444;">${lesson.notes}</div>` : ""}
+        <div class="divider-thick"></div>
+        <div class="footer">
+          <p class="thank-you">Rocky Driving School</p>
+          <p>Thank you for your commitment to safe driving.</p>
+          <div class="timestamp"><p>Printed: ${printed}</p></div>
+          <p class="copy-label">student copy</p>
+        </div>
+      </div>
+    </div>
+  </body></html>`);
+  win.document.close();
+  win.focus();
+  win.print();
 }
 
 const CHIP = {
@@ -234,7 +302,7 @@ export default function StudentLessons() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-100">
-                    {["#", "Date", "Time", "Duration", "Course", "Instructor", "Vehicle", "Type", "Status", "Notes"].map((h) => (
+                    {["#", "Date", "Time", "Duration", "Course", "Instructor", "Vehicle", "Type", "Status", "Notes", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
@@ -276,6 +344,14 @@ export default function StudentLessons() {
                         </td>
                         <td className="px-4 py-3 text-xs text-gray-500 max-w-[160px] truncate">
                           {lesson.notes || lesson.instructor_remarks || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => printLessonSlip(lesson, student)}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#c41820] hover:bg-[#ed1c24] text-white transition-all"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
                         </td>
                       </tr>
                     );

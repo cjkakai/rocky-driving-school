@@ -7,8 +7,7 @@ django.setup()
 
 from datetime import date, timedelta, time
 from academics.models import StudentCourse, Lesson, Instructor
-
-SC_REF       = "KHW001"
+SC_REF       = "KHW006"
 INSTRUCTOR_ID = 2        # Morris Odhiambo
 LESSON_COUNT  = 30
 START_DATE    = date(2025, 1, 6)   # Monday — adjust if needed

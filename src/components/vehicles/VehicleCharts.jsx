@@ -42,7 +42,7 @@ function BarTooltip({ active, payload, label }) {
 export function VehicleCharts({ vehicles }) {
   const [tripData, setTripData] = useState([]);
   const [loadingTrips, setLoadingTrips] = useState(false);
-  const [activePeriod, setActivePeriod] = useState("Today");
+  const [activePeriod, setActivePeriod] = useState("This Month");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
@@ -193,12 +193,48 @@ export function VehicleCharts({ vehicles }) {
                 <Bar dataKey="lessons" fill="#1a0a0b" fillOpacity={1} radius={[6, 6, 0, 0]} maxBarSize={52} />
               </BarChart>
             );
-            return needsScroll ? (
-              <div className="overflow-x-auto overflow-y-hidden">{chart}</div>
-            ) : (
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">{chart}</ResponsiveContainer>
-              </div>
+            return (
+              <>
+                {needsScroll ? (
+                  <div className="overflow-x-auto overflow-y-hidden">{chart}</div>
+                ) : (
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">{chart}</ResponsiveContainer>
+                  </div>
+                )}
+                <div className="mt-4 border-t border-gray-100 pt-3">
+                  <div className="overflow-y-auto" style={{ maxHeight: 180 }}>
+                    <table className="w-full text-xs">
+                      <thead className="sticky top-0 bg-white">
+                        <tr className="border-b border-gray-100">
+                          <th className="pb-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide">Vehicle</th>
+                          <th className="pb-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide w-24">Lessons</th>
+                          <th className="pb-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide w-16">Students</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(() => {
+                          const max = Math.max(...tripData.map((v) => v.total_lessons), 1);
+                          return tripData.map((v) => (
+                            <tr key={v.registration} className="border-b border-gray-50 hover:bg-gray-50/50">
+                              <td className="py-1.5 font-mono font-semibold text-gray-700 pr-3 whitespace-nowrap">{v.registration}</td>
+                              <td className="py-1.5 pr-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 bg-gray-100 rounded-full h-1.5" style={{ minWidth: 60 }}>
+                                    <div className="h-1.5 rounded-full bg-[#1a0a0b]" style={{ width: `${(v.total_lessons / max) * 100}%` }} />
+                                  </div>
+                                  <span className="font-extrabold text-gray-900 tabular-nums w-6 text-right">{v.total_lessons}</span>
+                                </div>
+                              </td>
+                              <td className="py-1.5 text-gray-500 tabular-nums">{v.total_students}</td>
+                            </tr>
+                          ));
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
             );
           })()}
         </div>

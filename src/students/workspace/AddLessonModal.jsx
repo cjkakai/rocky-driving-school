@@ -7,10 +7,8 @@ import { vehiclesAPI } from "../../api/vehicles.api";
 const today = () => new Date().toISOString().split("T")[0];
 
 const LESSON_TYPES = [
-  { value: "practical",  label: "Practical" },
-  { value: "theory",     label: "Theory" },
-  { value: "mock_test",  label: "Mock Test" },
-  { value: "road_test",  label: "Road Test" },
+  { value: "practical", label: "Practical" },
+  { value: "theory",    label: "Theory" },
 ];
 
 const STATUSES = [

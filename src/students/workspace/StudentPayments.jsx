@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { CreditCard, Loader2, Receipt, TrendingUp } from "lucide-react";
+import { CreditCard, Loader2, Printer, Receipt, TrendingUp } from "lucide-react";
+import { PaymentReceipt } from "../../components/payments/PaymentReceipt";
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 import { paymentsAPI } from "../../api/payments.api";
 import { fmt, fmtDate, computeCourseBalance } from "../../utils/students.utils";
@@ -38,6 +39,7 @@ export default function StudentPayments() {
   const { student, setStudent, selectedCourse } = useOutletContext();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [printingReceipt, setPrintingReceipt] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -58,6 +60,7 @@ export default function StudentPayments() {
     : 0;
 
   return (
+    <>
     <div className="min-h-full bg-gray-50">
       <div className="p-6 space-y-5">
         <div className="flex items-center gap-4 flex-wrap">
@@ -119,7 +122,7 @@ export default function StudentPayments() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-100">
-                    {["Date", "Reference", "Course", "Method", "Type", "Amount", "Balance After"].map((h) => (
+                    {["Date", "Reference", "Course", "Method", "Type", "Amount", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -136,10 +139,13 @@ export default function StudentPayments() {
                       <td className="px-4 py-3 whitespace-nowrap"><Badge variant="gray">{METHOD_LABEL[p.payment_method] || p.payment_method}</Badge></td>
                       <td className="px-4 py-3 whitespace-nowrap"><Badge variant={p.payment_type === "UNALLOCATED" ? "orange" : "blue"}>{TYPE_LABEL[p.payment_type] || p.payment_type}</Badge></td>
                       <td className="px-4 py-3 whitespace-nowrap"><span className="font-extrabold text-emerald-700 tabular-nums">{fmt(p.amount)}</span></td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        {p.receipt_new_balance != null ? (
-                          <span className={`text-xs font-bold tabular-nums ${Number(p.receipt_new_balance) > 0 ? "text-rose-600" : "text-emerald-600"}`}>{fmt(p.receipt_new_balance)}</span>
-                        ) : <span className="text-gray-300">—</span>}
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setPrintingReceipt(p)}
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#c41820] hover:bg-[#ed1c24] text-white transition-all"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -150,5 +156,13 @@ export default function StudentPayments() {
         </div>
       </div>
     </div>
+
+    {printingReceipt && (
+      <PaymentReceipt
+        payment={printingReceipt}
+        onClose={() => setPrintingReceipt(null)}
+      />
+    )}
+    </>
   );
 }

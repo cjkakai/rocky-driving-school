@@ -293,7 +293,7 @@ export default function StudentOverview() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-100">
-                    {["Date", "Reference", "Method", "Amount", "Balance After"].map((h) => (
+                    {["Date", "Reference", "Method", "Amount"].map((h) => (
                       <th key={h} className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -305,11 +305,6 @@ export default function StudentOverview() {
                       <td className="px-5 py-3 font-mono text-xs text-gray-700 whitespace-nowrap">{p.reference_code}</td>
                       <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">{METHOD_LABEL[p.payment_method] || p.payment_method}</td>
                       <td className="px-5 py-3 text-xs font-bold text-emerald-700 tabular-nums whitespace-nowrap">+{fmt(p.amount)}</td>
-                      <td className="px-5 py-3 text-xs tabular-nums whitespace-nowrap">
-                        {p.receipt_new_balance != null
-                          ? <span className={Number(p.receipt_new_balance) > 0 ? "text-red-600 font-bold" : "text-emerald-600 font-bold"}>{fmt(p.receipt_new_balance)}</span>
-                          : <span className="text-gray-300">—</span>}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
