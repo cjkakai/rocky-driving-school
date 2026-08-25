@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
-import { X, Loader2, Clock } from "lucide-react";
+import { X, Loader2, Clock, Car, BookOpen } from "lucide-react";
 import toast from "react-hot-toast";
 import { lessonsAPI, instructorsAPI } from "../../api/lessons.api";
 import { vehiclesAPI } from "../../api/vehicles.api";
 
 const today = () => new Date().toISOString().split("T")[0];
-
-const LESSON_TYPES = [
-  { value: "practical", label: "Practical" },
-  { value: "theory",    label: "Theory" },
-];
 
 const STATUSES = [
   { value: "completed", label: "Completed" },
@@ -30,6 +25,37 @@ function Field({ label, required, children }) {
 }
 
 const inputCls = "w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-[#c41820] bg-white transition-colors";
+
+/* ── Segmented lesson-type control ─────────────────────────────────── */
+const LESSON_TYPE_OPTIONS = [
+  { value: "practical", label: "Practical", icon: Car },
+  { value: "theory",    label: "Theory",    icon: BookOpen },
+];
+
+function LessonTypeSelector({ value, onChange }) {
+  return (
+    <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
+      {LESSON_TYPE_OPTIONS.map(({ value: v, label, icon: Icon }) => {
+        const active = value === v;
+        return (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onChange(v)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+              active
+                ? "bg-[#1a0a0b] text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function AddLessonModal({ student, studentCourses = [], selectedCourse, onClose, onSuccess }) {
   const [instructors, setInstructors] = useState([]);
@@ -54,12 +80,19 @@ export default function AddLessonModal({ student, studentCourses = [], selectedC
     instructor_remarks: "",
   });
 
+  const isPractical = form.lesson_type === "practical";
+
   useEffect(() => {
     instructorsAPI.getAll().then(setInstructors).catch(() => {});
     vehiclesAPI.list().then((d) => setVehicles(Array.isArray(d) ? d : (d.results ?? []))).catch(() => {});
   }, []);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  // Clear vehicle when switching to theory
+  const handleTypeChange = (v) => {
+    setForm((p) => ({ ...p, lesson_type: v, vehicle: v === "theory" ? "" : p.vehicle }));
+  };
 
   const duration = (() => {
     try {
@@ -84,7 +117,7 @@ export default function AddLessonModal({ student, studentCourses = [], selectedC
         lesson_type:        form.lesson_type,
         status:             form.status,
         instructor:         form.instructor ? Number(form.instructor) : null,
-        vehicle:            form.vehicle    ? Number(form.vehicle)    : null,
+        vehicle:            isPractical && form.vehicle ? Number(form.vehicle) : null,
         notes:              form.notes,
         instructor_remarks: form.instructor_remarks,
       });
@@ -125,6 +158,11 @@ export default function AddLessonModal({ student, studentCourses = [], selectedC
             </select>
           </Field>
 
+          {/* Lesson Type — segmented control */}
+          <Field label="Lesson Type">
+            <LessonTypeSelector value={form.lesson_type} onChange={handleTypeChange} />
+          </Field>
+
           {/* Date */}
           <Field label="Date" required>
             <input type="date" value={form.date} onChange={(e) => set("date", e.target.value)}
@@ -146,19 +184,12 @@ export default function AddLessonModal({ student, studentCourses = [], selectedC
             </div>
           )}
 
-          {/* Type & Status */}
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Lesson Type">
-              <select value={form.lesson_type} onChange={(e) => set("lesson_type", e.target.value)} className={inputCls}>
-                {LESSON_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </Field>
-            <Field label="Status">
-              <select value={form.status} onChange={(e) => set("status", e.target.value)} className={inputCls}>
-                {STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </Field>
-          </div>
+          {/* Status */}
+          <Field label="Status">
+            <select value={form.status} onChange={(e) => set("status", e.target.value)} className={inputCls}>
+              {STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </Field>
 
           {/* Instructor */}
           <Field label="Instructor">
@@ -170,15 +201,17 @@ export default function AddLessonModal({ student, studentCourses = [], selectedC
             </select>
           </Field>
 
-          {/* Vehicle */}
-          <Field label="Vehicle">
-            <select value={form.vehicle} onChange={(e) => set("vehicle", e.target.value)} className={inputCls}>
-              <option value="">— Select vehicle —</option>
-              {vehicles.map((v) => (
-                <option key={v.id} value={v.id}>{v.registration_number} — {v.vehicle_name}</option>
-              ))}
-            </select>
-          </Field>
+          {/* Vehicle — only shown for Practical lessons */}
+          {isPractical && (
+            <Field label="Vehicle">
+              <select value={form.vehicle} onChange={(e) => set("vehicle", e.target.value)} className={inputCls}>
+                <option value="">— Select vehicle —</option>
+                {vehicles.map((v) => (
+                  <option key={v.id} value={v.id}>{v.registration_number} — {v.vehicle_name}</option>
+                ))}
+              </select>
+            </Field>
+          )}
 
           {/* Notes */}
           <Field label="Notes">

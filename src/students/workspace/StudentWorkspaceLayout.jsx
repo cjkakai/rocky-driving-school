@@ -166,7 +166,7 @@ export default function StudentWorkspaceLayout() {
         {/* Avatar */}
         <div className="px-4 pt-5">
           <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#c41820] to-[#2c1417] flex items-center justify-center text-white font-black text-xl select-none shadow-md">
+            <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-[#c41820] font-black text-xl select-none shadow-sm">
               {initials}
             </div>
           </div>
@@ -188,7 +188,6 @@ export default function StudentWorkspaceLayout() {
           <DetailRow icon={Layers} label="Active Courses" value={String(activeCourseCount)} />
         </div>
 
-        {/* Nav */}
         <nav className="p-3 mt-2 flex-1 space-y-1">
           {NAV.map(({ to, label, icon: Icon }) => (
             <NavLink
@@ -197,12 +196,9 @@ export default function StudentWorkspaceLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                   isActive
-                    ? "text-white shadow-md shadow-red-900/20"
+                    ? "bg-red-50 text-[#c41820] border border-red-100 shadow-sm"
                     : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                 }`
-              }
-              style={({ isActive }) =>
-                isActive ? { background: "linear-gradient(115deg, #7c1017, #c41820)" } : undefined
               }
             >
               <Icon className="w-4 h-4 shrink-0" />

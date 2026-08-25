@@ -15,7 +15,8 @@ function CourseForm({ initial, onClose, onSuccess }) {
   const [form, setForm] = useState({
     category: initial?.category ?? "",
     class_name: initial?.class_name ?? "",
-    lessons: initial?.lessons ?? "",
+    practical_lessons: initial?.practical_lessons ?? "",
+    theory_lessons: initial?.theory_lessons ?? "",
     amount: initial?.amount ?? "",
     max_discount: initial?.max_discount ?? "0",
     is_refresher_course: initial?.is_refresher_course ?? false,
@@ -29,9 +30,12 @@ function CourseForm({ initial, onClose, onSuccess }) {
     e.preventDefault();
     const amount = Number(form.amount);
     const max_discount = Number(form.max_discount);
+    const practical_lessons = Number(form.practical_lessons);
+    const theory_lessons = Number(form.theory_lessons);
     if (!form.category.trim()) { setError("Category is required."); return; }
     if (!form.class_name.trim()) { setError("Class name is required."); return; }
-    if (!form.lessons.trim()) { setError("Lessons is required."); return; }
+    if (practical_lessons < 0) { setError("Practical lessons cannot be negative."); return; }
+    if (theory_lessons < 0) { setError("Theory lessons cannot be negative."); return; }
     if (amount <= 0) { setError("Amount must be greater than 0."); return; }
     if (max_discount < 0) { setError("Max discount cannot be negative."); return; }
     if (max_discount > amount) { setError("Max discount cannot exceed course amount."); return; }
@@ -41,7 +45,8 @@ function CourseForm({ initial, onClose, onSuccess }) {
       const payload = {
         category: form.category.trim(),
         class_name: form.class_name.trim(),
-        lessons: form.lessons.trim(),
+        practical_lessons,
+        theory_lessons,
         amount,
         max_discount,
         is_refresher_course: form.is_refresher_course,
@@ -77,12 +82,16 @@ function CourseForm({ initial, onClose, onSuccess }) {
           <Input id="class_name" placeholder="e.g. A2 Motorcycle" value={form.class_name} onChange={(e) => set("class_name", e.target.value)} />
         </div>
         <div>
-          <Label htmlFor="lessons">Lessons</Label>
-          <Input id="lessons" placeholder="e.g. 10 theory, 10 practical" value={form.lessons} onChange={(e) => set("lessons", e.target.value)} />
-        </div>
-        <div>
           <Label htmlFor="amount">Amount (Ksh)</Label>
           <Input id="amount" type="number" min="1" placeholder="12000" value={form.amount} onChange={(e) => set("amount", e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="practical_lessons">Practical Lessons</Label>
+          <Input id="practical_lessons" type="number" min="0" placeholder="e.g. 15" value={form.practical_lessons} onChange={(e) => set("practical_lessons", e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="theory_lessons">Theory Lessons</Label>
+          <Input id="theory_lessons" type="number" min="0" placeholder="e.g. 10" value={form.theory_lessons} onChange={(e) => set("theory_lessons", e.target.value)} />
         </div>
         <div>
           <Label htmlFor="max_discount">Max Discount (Ksh)</Label>
@@ -222,7 +231,8 @@ export default function Courses() {
                 <tr className="bg-gray-50 border-b border-gray-100">
                   <TH>Category</TH>
                   <TH>Class</TH>
-                  <TH>Lessons</TH>
+                  <TH>Practical</TH>
+                  <TH>Theory</TH>
                   <TH>Amount</TH>
                   <TH>Max Discount</TH>
                   <TH>Refresher</TH>
@@ -235,7 +245,16 @@ export default function Courses() {
                   <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-4 text-gray-700 max-w-[180px]"><span className="line-clamp-2">{c.category}</span></td>
                     <td className="px-4 py-4 font-semibold text-gray-900 max-w-[140px]"><span className="line-clamp-2">{c.class_name}</span></td>
-                    <td className="px-4 py-4 text-gray-600 max-w-[100px]"><span className="line-clamp-2">{c.lessons}</span></td>
+                    <td className="px-4 py-4 text-gray-600 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-orange-50 border border-orange-100 text-orange-700">
+                        {c.practical_lessons ?? 0}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-gray-600 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700">
+                        {c.theory_lessons ?? 0}
+                      </span>
+                    </td>
                     <td className="px-4 py-4 font-bold text-green-700 whitespace-nowrap">{fmt(c.amount)}</td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       {Number(c.max_discount) > 0 ? (

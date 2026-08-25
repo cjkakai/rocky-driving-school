@@ -6,7 +6,6 @@ import { Btn, Modal, DeleteConfirmModal } from "../ui";
 import { useAuth } from "../context/AuthContext";
 import { branchesAPI } from "../api/branches.api";
 import { coursesAPI } from "../api/courses.api";
-import { pdlAPI } from "../api/pdl.api";
 import { examsAPI } from "../api/exams.api";
 import { StudentFilters } from "../students/StudentFilters";
 import { StudentSummary, StudentStatCards } from "../students/StudentSummary";
@@ -47,18 +46,6 @@ export default function AdminStudents() {
       .then(([b, c, rc, e]) => { setBranches(b); setCourses(c); setRegistrationCourses(rc); setExams(Array.isArray(e) ? e : e.results ?? []); })
       .catch(() => {});
   }, []);
-
-  const handleApprovePdl = async (booking) => {
-    try {
-      await pdlAPI.approve(booking.id);
-      toast.success("PDL approved");
-      const updated = await studentsAPI.getOne(booking.studentId);
-      if (updated?.id) patchStudent(updated.id, updated);
-      refreshSummary();
-    } catch (err) {
-      toast.error(err.message || "Failed to approve PDL.");
-    }
-  };
 
   const handleApproveExam = async (booking) => {
     try {
@@ -172,7 +159,6 @@ export default function AdminStudents() {
           loading={loading}
           isBranchUser={false}
           isSuperAdmin={true}
-          onApprovePdl={handleApprovePdl}
           onApproveExam={handleApproveExam}
           onEnroll={setEnrollStudent}
           onEdit={setEditStudent}

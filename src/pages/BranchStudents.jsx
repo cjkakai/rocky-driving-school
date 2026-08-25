@@ -128,7 +128,6 @@ export default function BranchStudents() {
           loading={loading}
           isBranchUser={true}
           isSuperAdmin={false}
-          onApprovePdl={() => {}}
           onApproveExam={() => {}}
           onEnroll={setEnrollStudent}
           exams={exams}

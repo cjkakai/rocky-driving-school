@@ -72,11 +72,13 @@ function EnrollmentPanel({ sc, courses, studentCourses, isBranchUser, isSuperAdm
 
   const { run, loading } = useAsyncAction({ onSuccess: patchCourse });
 
-  const handleBookPdl  = () => run(() => pdlAPI.create({ student_course: sc.id }), "PDL submitted — awaiting HQ approval");
+  const handleAddPdl = (pdlData) => run(
+    () => pdlAPI.create({ student_course: sc.id, ...pdlData }),
+    "PDL saved — course is now active"
+  );
   const handleActivate = () => run(() => studentCoursesAPI.activateCourse(sc.id), "Course reactivated");
   const handleRetake   = () => run(() => studentCoursesAPI.applyRetake(sc.id), "Retake applied");
   const handleMarkCompleted  = () => run(() => studentCoursesAPI.markCompleted(sc.id), "Course marked as completed");
-  const handleApprovePdl     = () => run(() => pdlAPI.approve(sc.pending_pdl_booking_id), "PDL approved");
   const handleSubmitForExam  = () => run(() => studentCoursesAPI.submitForExam(sc.id), "Submitted for exam list — awaiting HQ review");
   const handleAddToExamList  = () => {
     if (!selectedExamId) return;
@@ -186,10 +188,8 @@ function EnrollmentPanel({ sc, courses, studentCourses, isBranchUser, isSuperAdm
           <PdlSection
             sc={sc}
             isBranchUser={isBranchUser}
-            isSuperAdmin={isSuperAdmin}
             loading={loading}
-            onBookPdl={handleBookPdl}
-            onApprovePdl={handleApprovePdl}
+            onAddPdl={handleAddPdl}
           />
         </div>
 

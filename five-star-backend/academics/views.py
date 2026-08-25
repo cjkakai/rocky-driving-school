@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from .models import Course, StudentCourse, CourseTransfer, Lesson, Instructor
 from .serializers import CourseSerializer, StudentCourseSerializer, LessonSerializer, InstructorSerializer, VehicleSerializer
-from students.lifecycle import apply_pdl_reactivation, apply_retake, mark_refresher_completed, on_payment_completed, sync_student_status, has_full_payment, has_lessons_complete, get_course_pdl, is_pdl_expired
+from students.lifecycle import apply_pdl_reactivation, apply_retake, mark_refresher_completed, on_payment_completed, sync_student_status, has_full_payment, get_course_pdl, is_pdl_expired
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -75,11 +75,6 @@ class StudentCourseViewSet(viewsets.ModelViewSet):
                         {"detail": "An active PDL is required before submitting for exam list."},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
-            if not has_lessons_complete(sc):
-                return Response(
-                    {"detail": f"All {sc.course.lessons} lessons must be completed before submitting for exam list."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
 
         sc.status = "pending_exam_booking"
         sc.save(update_fields=["status", "updated_at"])
@@ -306,6 +301,10 @@ class LessonViewSet(viewsets.ModelViewSet):
         cancelled = qs.filter(status="cancelled").count()
         no_show = qs.filter(status="no_show").count()
 
+        # Practical / Theory split (completed lessons only)
+        practical_completed = qs.filter(status="completed", lesson_type="practical").count()
+        theory_completed = qs.filter(status="completed", lesson_type="theory").count()
+
         total_minutes = sum(
             l.duration_minutes for l in qs.filter(status="completed")
         )
@@ -319,8 +318,12 @@ class LessonViewSet(viewsets.ModelViewSet):
             ).exclude(status="transferred").select_related("course")
 
         total_required = 0
+        practical_required = 0
+        theory_required = 0
         for sc in sc_qs:
             total_required += sc.course.lessons or 0
+            practical_required += sc.course.practical_lessons or 0
+            theory_required += sc.course.theory_lessons or 0
 
         return Response({
             "total": total,
@@ -330,6 +333,10 @@ class LessonViewSet(viewsets.ModelViewSet):
             "no_show": no_show,
             "total_minutes": total_minutes,
             "total_required": total_required,
+            "practical_completed": practical_completed,
+            "theory_completed": theory_completed,
+            "practical_required": practical_required,
+            "theory_required": theory_required,
             "remaining": max(0, total_required - completed),
         })
 

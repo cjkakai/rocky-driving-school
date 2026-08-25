@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Clock, CheckCircle, XCircle, Award, FileText, Loader2, ListPlus } from "lucide-react";
 import { fmtDate } from "../../utils/students.utils";
 import { canSubmitForExam, submitExamBlockedReason } from "../../utils/studentActions";
-import { examsAPI } from "../../api/exams.api";
 
 export function ExamSection({ sc, exam, isBranchUser, isSuperAdmin, loading, onSubmitForExam, onApproveExam, activeExams = [] }) {
   const [selectedExamId, setSelectedExamId] = useState("");
@@ -77,9 +76,36 @@ export function ExamSection({ sc, exam, isBranchUser, isSuperAdmin, loading, onS
             Submit for Exam List
           </button>
         ) : (
-          submitReason && <p className="text-xs text-red-400 italic">{submitReason}</p>
+          submitReason && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-red-400 italic">{submitReason}</p>
+              {/* Eligibility checklist — only show the two real requirements */}
+              <div className="flex flex-col gap-1 mt-1">
+                <EligibilityCheck
+                  met={sc.pdl_state === "active"}
+                  label="PDL Active"
+                />
+                <EligibilityCheck
+                  met={(sc.balance ?? 1) <= 0}
+                  label="Payment Complete"
+                />
+              </div>
+            </div>
+          )
         )
       )}
+    </div>
+  );
+}
+
+function EligibilityCheck({ met, label }) {
+  return (
+    <div className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${met ? "text-green-600" : "text-gray-400"}`}>
+      {met
+        ? <CheckCircle className="w-3 h-3 text-green-500 shrink-0" />
+        : <XCircle className="w-3 h-3 text-gray-300 shrink-0" />
+      }
+      {label}
     </div>
   );
 }

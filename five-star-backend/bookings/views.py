@@ -60,13 +60,13 @@ class PDLBookingViewSet(viewsets.ModelViewSet):
         # Min payment check is per-course
         if not has_min_payment(student_course):
             raise ValidationError(
-                {"student_course": "Course must have at least 10% payment before booking PDL."}
+                {"student_course": "Course must have at least 10% payment before adding PDL."}
             )
 
         # Must be in pending_pdl status
         if student_course.status not in ("pending_pdl", "onboarded"):
             raise ValidationError(
-                {"student_course": f"Course is not ready for PDL booking (status: {student_course.status})."}
+                {"student_course": f"Course is not ready for PDL entry (status: {student_course.status})."}
             )
 
         # Block if ANY pending or active (approved non-expired) PDL exists
@@ -79,31 +79,29 @@ class PDLBookingViewSet(viewsets.ModelViewSet):
         )
         if existing.exists():
             raise ValidationError(
-                {"student_course": "This course already has an active or pending PDL."}
+                {"student_course": "This course already has an active PDL."}
             )
 
+        # Validate required PDL document fields
+        reference_number = serializer.validated_data.get("reference_number", "").strip()
+        issued_date = serializer.validated_data.get("issued_date")
+        if not reference_number:
+            raise ValidationError({"reference_number": "PDL reference number is required."})
+        if not issued_date:
+            raise ValidationError({"issued_date": "PDL issued date is required."})
+
         student = student_course.student
-        serializer.save(booked_by=self.request.user, student=student)
+        # Save as approved immediately — no admin approval step required
+        instance = serializer.save(
+            booked_by=self.request.user,
+            student=student,
+            status="approved",
+            approved_by=self.request.user,
+            approved_at=timezone.now(),
+        )
+        # Activate the course immediately
+        activate_course_on_pdl_approval(student_course)
 
-    @action(detail=True, methods=["post"])
-    def approve(self, request, pk=None):
-        booking = self.get_object()
-        booking.status = "approved"
-        booking.approved_by = request.user
-        booking.approved_at = timezone.now()
-        booking.save()
-        if booking.student_course:
-            activate_course_on_pdl_approval(booking.student_course)
-        return Response(PDLBookingSerializer(booking).data)
-
-    @action(detail=True, methods=["post"])
-    def reject(self, request, pk=None):
-        booking = self.get_object()
-        booking.status = "rejected"
-        booking.approved_by = request.user
-        booking.save()
-        sync_student_status(booking.student)
-        return Response(PDLBookingSerializer(booking).data)
 
 
 class ExamViewSet(viewsets.ModelViewSet):

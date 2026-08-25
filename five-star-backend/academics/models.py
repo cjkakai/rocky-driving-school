@@ -6,6 +6,8 @@ class Course(models.Model):
     category = models.CharField(max_length=255)
     class_name = models.CharField(max_length=100)
     lessons = models.PositiveSmallIntegerField(default=0)
+    practical_lessons = models.PositiveSmallIntegerField(default=0)
+    theory_lessons = models.PositiveSmallIntegerField(default=0)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     max_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_refresher_course = models.BooleanField(default=False)
@@ -116,7 +118,11 @@ class Lesson(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     duration_minutes = models.PositiveSmallIntegerField(default=0)
-    lesson_type = models.CharField(max_length=50, default="practical")
+    lesson_type = models.CharField(
+        max_length=50,
+        choices=[("practical", "Practical"), ("theory", "Theory")],
+        default="practical",
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="completed")
     notes = models.TextField(blank=True)
     instructor_remarks = models.TextField(blank=True)
@@ -135,6 +141,10 @@ class Lesson(models.Model):
         ]
 
     def save(self, *args, **kwargs):
+        # Enforce: theory lessons must never have a vehicle
+        if self.lesson_type == "theory":
+            self.vehicle = None
+            self.vehicle_id = None
         if self.start_time and self.end_time:
             from datetime import datetime, date as date_type
             d = self.date if isinstance(self.date, date_type) else date_type.today()

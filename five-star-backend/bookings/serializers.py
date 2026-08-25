@@ -9,9 +9,11 @@ class PDLBookingSerializer(serializers.ModelSerializer):
         model = PDLBooking
         fields = [
             "id", "student", "student_course", "booked_by", "approved_by",
-            "booking_date", "status", "notes", "approved_at", "created_at", "updated_at",
+            "booking_date", "status", "notes",
+            "reference_number", "issued_date",
+            "approved_at", "created_at", "updated_at",
         ]
-        read_only_fields = ["booked_by", "approved_by", "student", "booking_date"]
+        read_only_fields = ["booked_by", "approved_by", "student", "booking_date", "status", "approved_at"]
 
 
 class ExamResultSerializer(serializers.ModelSerializer):

@@ -6,7 +6,7 @@ from vehicles.models import Vehicle
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ["id", "category", "class_name", "lessons", "amount", "max_discount", "is_refresher_course", "is_active_for_registration"]
+        fields = ["id", "category", "class_name", "lessons", "practical_lessons", "theory_lessons", "amount", "max_discount", "is_refresher_course", "is_active_for_registration"]
 
     def validate(self, data):
         amount = data.get("amount", getattr(self.instance, "amount", None))
@@ -17,6 +17,10 @@ class CourseSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"class_name": "Class name is required."})
         if "lessons" in data and data.get("lessons", 0) < 0:
             raise serializers.ValidationError({"lessons": "Lessons must be 0 or more."})
+        if "practical_lessons" in data and data.get("practical_lessons", 0) < 0:
+            raise serializers.ValidationError({"practical_lessons": "Practical lessons must be 0 or more."})
+        if "theory_lessons" in data and data.get("theory_lessons", 0) < 0:
+            raise serializers.ValidationError({"theory_lessons": "Theory lessons must be 0 or more."})
         if "amount" in data and amount is not None and amount <= 0:
             raise serializers.ValidationError({"amount": "Amount must be greater than 0."})
         if "max_discount" in data and max_discount is not None and max_discount < 0:

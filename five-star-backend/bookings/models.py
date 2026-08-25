@@ -28,6 +28,9 @@ class PDLBooking(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     notes = models.TextField(blank=True)
     pdl_reminder_sent = models.BooleanField(default=False)
+    # PDL document details — captured from the physical PDL issued to the student
+    reference_number = models.CharField(max_length=100, blank=True, default="")
+    issued_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

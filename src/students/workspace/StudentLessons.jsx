@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
-import { GraduationCap, Plus, Loader2, Clock, CheckCircle, Calendar, Printer } from "lucide-react";
+import { GraduationCap, Plus, Loader2, Clock, CheckCircle, Calendar, Printer, Car, BookOpen } from "lucide-react";
 import { RadialBarChart, RadialBar, PolarAngleAxis, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts";
 import { lessonsAPI } from "../../api/lessons.api";
 import { fmtDate } from "../../utils/students.utils";
@@ -11,6 +11,19 @@ const STATUS_CONFIG = {
   scheduled:  { label: "Scheduled",  color: "text-blue-700 bg-blue-50 border-blue-100", dot: "#2563eb" },
   cancelled:  { label: "Cancelled",  color: "text-gray-600 bg-gray-50 border-gray-200", dot: "#6b7280" },
   no_show:    { label: "No Show",    color: "text-rose-600 bg-rose-50 border-rose-100", dot: "#e11d48" },
+};
+
+const TYPE_CONFIG = {
+  practical: {
+    label: "Practical",
+    color: "text-orange-700 bg-orange-50 border-orange-200",
+    icon: Car,
+  },
+  theory: {
+    label: "Theory",
+    color: "text-blue-700 bg-blue-50 border-blue-200",
+    icon: BookOpen,
+  },
 };
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -131,12 +144,36 @@ const hoursTooltip = ({ active, payload }) => {
   );
 };
 
+/* ── Type filter pill button ─────────────────────────────────────────── */
+function TypeFilterTab({ label, active, count, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+        active
+          ? "bg-[#1a0a0b] text-white shadow-sm"
+          : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:text-gray-700"
+      }`}
+    >
+      {label}
+      {count != null && (
+        <span className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black ${
+          active ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+        }`}>
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export default function StudentLessons() {
   const { student, setStudent, selectedCourse } = useOutletContext();
   const [lessons, setLessons] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("all"); // "all" | "practical" | "theory"
 
   const load = useCallback(() => {
     setLoading(true);
@@ -163,6 +200,15 @@ export default function StudentLessons() {
 
   const pct = summary?.total_required > 0 ? Math.min(100, (summary.completed / summary.total_required) * 100) : 0;
   const ringData = [{ value: pct, fill: "#c41820" }];
+
+  /* ── Type filter counts ─────────────────────────────────────────────── */
+  const practicalCount = useMemo(() => lessons.filter((l) => l.lesson_type === "practical").length, [lessons]);
+  const theoryCount    = useMemo(() => lessons.filter((l) => l.lesson_type === "theory").length, [lessons]);
+
+  const filteredLessons = useMemo(() => {
+    if (typeFilter === "all") return lessons;
+    return lessons.filter((l) => l.lesson_type === typeFilter);
+  }, [lessons, typeFilter]);
 
   /* Group completed lessons of the current week by weekday */
   const weeklyData = useMemo(() => {
@@ -205,6 +251,67 @@ export default function StudentLessons() {
           <SummaryCard icon={Calendar}      label="Remaining"  value={summary?.remaining ?? "—"} color="amber" />
           <SummaryCard icon={Clock}         label="Total Hours" value={totalHours} color="blue" />
         </div>
+
+        {/* Practical / Theory split progress */}
+        {summary && (summary.practical_required > 0 || summary.theory_required > 0) && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Practical */}
+            <div className="bg-white rounded-2xl border border-orange-100 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center">
+                    <Car className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">Practical</span>
+                </div>
+                <span className="text-xl font-black text-gray-900 tabular-nums">
+                  {summary.practical_completed} <span className="text-sm font-semibold text-gray-400">/ {summary.practical_required}</span>
+                </span>
+              </div>
+              {summary.practical_required > 0 && (
+                <>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full bg-orange-400 transition-all"
+                      style={{ width: `${Math.min(100, (summary.practical_completed / summary.practical_required) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    {Math.max(0, summary.practical_required - summary.practical_completed)} remaining
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Theory */}
+            <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">Theory</span>
+                </div>
+                <span className="text-xl font-black text-gray-900 tabular-nums">
+                  {summary.theory_completed} <span className="text-sm font-semibold text-gray-400">/ {summary.theory_required}</span>
+                </span>
+              </div>
+              {summary.theory_required > 0 && (
+                <>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full bg-blue-400 transition-all"
+                      style={{ width: `${Math.min(100, (summary.theory_completed / summary.theory_required) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    {Math.max(0, summary.theory_required - summary.theory_completed)} remaining
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {/* Progress ring */}
@@ -265,12 +372,35 @@ export default function StudentLessons() {
           </div>
         </div>
 
-        {/* Header row */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-extrabold text-gray-900 tracking-tight">Lesson History</h2>
+        {/* Header row + type filter */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="text-base font-extrabold text-gray-900 tracking-tight">Lesson History</h2>
+            {/* Type filter tabs */}
+            <div className="flex items-center gap-1.5">
+              <TypeFilterTab
+                label="All"
+                active={typeFilter === "all"}
+                count={lessons.length}
+                onClick={() => setTypeFilter("all")}
+              />
+              <TypeFilterTab
+                label="Practical"
+                active={typeFilter === "practical"}
+                count={practicalCount}
+                onClick={() => setTypeFilter("practical")}
+              />
+              <TypeFilterTab
+                label="Theory"
+                active={typeFilter === "theory"}
+                count={theoryCount}
+                onClick={() => setTypeFilter("theory")}
+              />
+            </div>
+          </div>
           <button
             onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-[#c41820] hover:bg-[#ed1c24] text-white rounded-xl transition-all shadow-sm shadow-red-900/10"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-[#c41820] hover:bg-[#ed1c24] text-white rounded-xl transition-all shadow-sm shadow-red-900/10 shrink-0"
           >
             <Plus className="w-4 h-4" /> Add Lesson
           </button>
@@ -283,26 +413,34 @@ export default function StudentLessons() {
               <Loader2 className="w-5 h-5 animate-spin text-[#c41820]" />
               <span className="text-sm">Loading lessons…</span>
             </div>
-          ) : lessons.length === 0 ? (
+          ) : filteredLessons.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
               <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
                 <GraduationCap className="w-6 h-6 text-[#c41820]" />
               </div>
-              <p className="font-semibold text-gray-500">No lessons recorded yet.</p>
-              <p className="text-sm text-gray-400">Add the student's first lesson to start tracking practical training.</p>
-              <button
-                onClick={() => setShowAdd(true)}
-                className="mt-1 flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-[#c41820] hover:bg-[#ed1c24] text-white rounded-xl transition-all"
-              >
-                <Plus className="w-4 h-4" /> Add Lesson
-              </button>
+              <p className="font-semibold text-gray-500">
+                {typeFilter === "all"
+                  ? "No lessons recorded yet."
+                  : `No ${typeFilter} lessons found.`}
+              </p>
+              {typeFilter === "all" && (
+                <>
+                  <p className="text-sm text-gray-400">Add the student's first lesson to start tracking training.</p>
+                  <button
+                    onClick={() => setShowAdd(true)}
+                    className="mt-1 flex items-center gap-2 px-4 py-2.5 text-sm font-bold bg-[#c41820] hover:bg-[#ed1c24] text-white rounded-xl transition-all"
+                  >
+                    <Plus className="w-4 h-4" /> Add Lesson
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-100">
-                    {["#", "Date", "Time", "Duration", "Course", "Instructor", "Vehicle", "Type", "Status", "Notes", ""].map((h) => (
+                    {["#", "Date", "Type", "Time", "Duration", "Course", "Instructor", "Vehicle", "Status", "Notes", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
@@ -310,13 +448,22 @@ export default function StudentLessons() {
                   </tr>
                 </thead>
                 <tbody>
-                  {lessons.map((lesson, i) => {
+                  {filteredLessons.map((lesson, i) => {
                     const cfg = STATUS_CONFIG[lesson.status] ?? STATUS_CONFIG.completed;
+                    const typeCfg = TYPE_CONFIG[lesson.lesson_type] ?? TYPE_CONFIG.practical;
+                    const TypeIcon = typeCfg.icon;
                     return (
                       <tr key={lesson.id} className={`border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${i % 2 === 1 ? "bg-gray-50/30" : ""}`}>
                         <td className="px-4 py-3 text-xs text-gray-400 tabular-nums">{i + 1}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-xs font-semibold text-gray-700">
                           {fmtDate(lesson.date)}
+                        </td>
+                        {/* Type badge column */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${typeCfg.color}`}>
+                            <TypeIcon className="w-3 h-3" />
+                            {typeCfg.label}
+                          </span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-600">
                           {fmtTime12(lesson.start_time)} – {fmtTime12(lesson.end_time)}
@@ -332,9 +479,6 @@ export default function StudentLessons() {
                         </td>
                         <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
                           {lesson.vehicle_display || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-gray-500 capitalize whitespace-nowrap">
-                          {lesson.lesson_type?.replace("_", " ")}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${cfg.color}`}>

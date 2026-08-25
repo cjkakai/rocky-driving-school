@@ -86,14 +86,14 @@ export const COURSE_STATUS_CONFIG = {
   exam_list: {
     label: "Exam List",     short: "Listed",
     variant: "blue",
-    color: "#f5c400",       from: "#f5c400", to: "#d4a800",
-    ring: "ring-yellow-200",
+    color: "#7c3aed",       from: "#7c3aed", to: "#6d28d9",
+    ring: "ring-violet-200",
   },
   exam_approved: {
     label: "Exam Approved", short: "Approved",
-    variant: "blue",
-    color: "#ffd700",       from: "#ffd700", to: "#f5c400",
-    ring: "ring-yellow-200",
+    variant: "green",
+    color: "#059669",       from: "#059669", to: "#047857",
+    ring: "ring-emerald-200",
   },
   failed: {
     label: "Failed",        short: "Failed",

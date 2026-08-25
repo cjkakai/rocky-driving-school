@@ -60,7 +60,10 @@ export function CourseCard({ sc, isBranchUser, isSuperAdmin, courses, studentCou
     return result;
   };
 
-  const handleBookPdl        = () => runAndPatch(() => pdlAPI.create({ student_course: sc.id }), "PDL submitted — awaiting HQ approval");
+  const handleAddPdl = (pdlData) => runAndPatch(
+    () => pdlAPI.create({ student_course: sc.id, ...pdlData }),
+    "PDL saved — course is now active"
+  );
   const handleActivate       = () => runAndPatch(() => studentCoursesAPI.activateCourse(sc.id), "Course reactivated");
   const handleRetake         = () => runAndPatch(() => studentCoursesAPI.applyRetake(sc.id), "Retake applied");
   const handleMarkCompleted  = () => runAndPatch(() => studentCoursesAPI.markCompleted(sc.id), "Course marked as completed");
@@ -190,10 +193,8 @@ export function CourseCard({ sc, isBranchUser, isSuperAdmin, courses, studentCou
           <PdlSection
             sc={sc}
             isBranchUser={isBranchUser}
-            isSuperAdmin={isSuperAdmin}
             loading={loading}
-            onBookPdl={handleBookPdl}
-            onApprovePdl={() => runAndPatch(() => pdlAPI.approve(sc.pending_pdl_booking_id), "PDL approved")}
+            onAddPdl={handleAddPdl}
           />
         </div>
 

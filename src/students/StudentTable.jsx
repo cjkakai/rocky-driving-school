@@ -56,23 +56,12 @@ function CourseProgressCell({ student }) {
 }
 
 /* ─── Next-action cell ───────────────────────────────────────────── */
-function NextActionCell({ student, isBranchUser, isSuperAdmin, onEnroll, onApprovePdl, onApproveExam }) {
+function NextActionCell({ student, isBranchUser, isSuperAdmin, onEnroll, onApproveExam }) {
   const action = isSuperAdmin
     ? adminPrimaryAction(student)
     : branchPrimaryAction(student);
 
   if (action.kind === "none") return <span className="text-xs text-gray-300">—</span>;
-
-  if (action.kind === "approve-pdl")
-    return (
-      <button
-        onClick={() => onApprovePdl({ id: action.resourceId, studentId: student.id })}
-        className="flex items-center gap-1.5 text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 py-1.5 rounded-lg transition-all shadow-sm whitespace-nowrap"
-      >
-        <CheckCircle className="w-3 h-3" />
-        {action.label}
-      </button>
-    );
 
   if (action.kind === "approve-exam")
     return (
@@ -112,7 +101,7 @@ function NextActionCell({ student, isBranchUser, isSuperAdmin, onEnroll, onAppro
 function StudentRow({
   student,
   isBranchUser, isSuperAdmin,
-  onApprovePdl, onApproveExam, onEnroll,
+  onApproveExam, onEnroll,
   onEdit, onDelete,
   isEvenRow,
 }) {
@@ -220,7 +209,6 @@ function StudentRow({
           isBranchUser={isBranchUser}
           isSuperAdmin={isSuperAdmin}
           onEnroll={onEnroll}
-          onApprovePdl={onApprovePdl}
           onApproveExam={onApproveExam}
         />
       </td>

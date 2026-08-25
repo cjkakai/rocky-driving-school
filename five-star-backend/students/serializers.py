@@ -56,20 +56,17 @@ class StudentCourseSerializer(serializers.Serializer):
     payments = PaymentInCourseSerializer(many=True)
     balance = serializers.SerializerMethodField()
     pdl_state = serializers.SerializerMethodField()
+    pdl_details = serializers.SerializerMethodField()
     lessons_complete = serializers.SerializerMethodField()
-
-    def get_lessons_complete(self, obj):
-        from students.lifecycle import has_lessons_complete
-        return has_lessons_complete(obj)
-    pending_pdl_booking_id = serializers.SerializerMethodField()
     exam_booking = serializers.SerializerMethodField()
     exam_attempt_count = serializers.IntegerField()
     last_exam_result = serializers.CharField()
-    lessons_complete = serializers.SerializerMethodField()
 
-    def get_pending_pdl_booking_id(self, obj):
-        pdl = obj.pdl_bookings.filter(status="pending").first()
-        return pdl.id if pdl else None
+    def get_lessons_complete(self, obj):
+        required = obj.course.lessons or 0
+        if required == 0:
+            return True
+        return obj.lessons.filter(status="completed").count() >= required
 
     def get_balance(self, obj):
         agreed = obj.amount_agreed or 0
@@ -81,13 +78,24 @@ class StudentCourseSerializer(serializers.Serializer):
         from django.utils import timezone
         from students.lifecycle import get_course_pdl, is_pdl_expired
 
-        if obj.pdl_bookings.filter(status="pending").exists():
-            return "pending"
-
+        # No more pending PDLs — workflow is now direct entry
         pdl = get_course_pdl(obj)
         if not pdl:
             return "none"
         return "expired" if is_pdl_expired(pdl) else "active"
+
+    def get_pdl_details(self, obj):
+        """Return reference_number and issued_date from the active/most-recent PDL."""
+        from students.lifecycle import get_course_pdl
+        pdl = get_course_pdl(obj)
+        if not pdl:
+            return None
+        return {
+            "id": pdl.id,
+            "reference_number": pdl.reference_number or "",
+            "issued_date": pdl.issued_date,
+            "approved_at": pdl.approved_at,
+        }
 
     def get_exam_booking(self, obj):
         eb = obj.exam_bookings.filter(exam__isnull=False).order_by("-created_at").first()
@@ -102,6 +110,8 @@ class PDLBookingSummarySerializer(serializers.Serializer):
     status = serializers.CharField()
     booking_date = serializers.DateField()
     approved_at = serializers.DateTimeField(allow_null=True)
+    reference_number = serializers.CharField()
+    issued_date = serializers.DateField(allow_null=True)
 
 
 class StudentSerializer(serializers.ModelSerializer):

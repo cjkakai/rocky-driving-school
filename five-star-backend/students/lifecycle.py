@@ -83,14 +83,6 @@ def activate_course_on_pdl_approval(student_course):
 
 # ── Payment-triggered transitions ─────────────────────────────────────────────
 
-def has_lessons_complete(student_course):
-    """True if completed lessons >= course required lessons."""
-    required = student_course.course.lessons or 0
-    if required == 0:
-        return True
-    return student_course.lessons.filter(status="completed").count() >= required
-
-
 def on_payment_completed(student_course):
     """
     Called after a payment is recorded as completed.

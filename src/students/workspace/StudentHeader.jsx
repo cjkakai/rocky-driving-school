@@ -36,7 +36,7 @@ export default function StudentHeader({ student, onUpdate }) {
 
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#c41820] to-[#2c1417] flex items-center justify-center text-white font-black text-base shadow-md shrink-0 select-none">
+          <div className="w-11 h-11 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-[#c41820] font-black text-base shadow-sm shrink-0 select-none">
             {initials}
           </div>
           <div>
