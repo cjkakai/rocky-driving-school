@@ -42,8 +42,8 @@ function resultBadge(result) {
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
-      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
+    <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
       Pending
     </span>
   );
@@ -60,7 +60,7 @@ function bookingStatusBadge(status) {
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+    <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
       <Clock className="w-3 h-3" /> Awaiting approval
     </span>
   );
@@ -413,7 +413,7 @@ function StudentRow({ booking, exam, isSuperAdmin, onResult, onRemove, onApprove
                 commentsOpen
                   ? "border-transparent text-white shadow-sm"
                   : "border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200"
-              } ${hasComment && !commentsOpen ? "ring-2 ring-violet-200" : ""}`}
+              } ${hasComment && !commentsOpen ? "ring-2 ring-blue-200" : ""}`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
             </button>
@@ -711,7 +711,7 @@ export function ExamCard({
                   </span>
                 )}
                 {open && pendingApprovalCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                     <Clock className="w-3 h-3" /> {pendingApprovalCount} awaiting approval
                   </span>
                 )}

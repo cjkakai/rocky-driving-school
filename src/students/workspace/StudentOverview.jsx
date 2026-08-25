@@ -5,7 +5,6 @@ import {
   XCircle, MinusCircle,
 } from "lucide-react";
 import {
-  RadialBarChart, RadialBar, PolarAngleAxis,
   BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer,
 } from "recharts";
 import { lessonsAPI } from "../../api/lessons.api";
@@ -126,12 +125,6 @@ export default function StudentOverview() {
     ? `${Math.floor(lessonSummary.total_minutes / 60)}h ${lessonSummary.total_minutes % 60}m`
     : "—";
 
-  const trainingPct = lessonSummary?.total_required > 0
-    ? Math.min(100, (lessonSummary.completed / lessonSummary.total_required) * 100)
-    : 0;
-
-  const ringData = [{ value: trainingPct, fill: cfg.color }];
-
   /* Weekly bar chart — same logic as Lessons page */
   const weeklyData = useMemo(() => {
     const now = new Date();
@@ -211,54 +204,68 @@ export default function StudentOverview() {
           <StatCard icon={TrendingUp}    label="Balance"           value={balance > 0 ? fmt(balance) : "Cleared"} sub={balance > 0 ? "Outstanding" : "Fully paid"} color={balance > 0 ? "red" : "green"} />
           {lessonSummary && (
             <>
-              <StatCard icon={GraduationCap} label="Training Progress" value={`${lessonSummary.completed} / ${lessonSummary.total_required || "?"}`} sub={lessonSummary.total_required ? `${lessonSummary.remaining} remaining` : ""} color="purple" />
+              <StatCard icon={GraduationCap} label="Lessons Completed" value={lessonSummary.completed} sub={`${lessonSummary.practical_completed} practical · ${lessonSummary.theory_completed} theory`} color="purple" />
               <StatCard icon={Clock}         label="Training Hours"    value={totalHours} sub="Completed lessons" color="amber" />
             </>
           )}
           <StatCard icon={Calendar} label="Registered" value={fmtDate(student.created_at)} color="indigo" />
         </div>
 
-        {/* Training progress ring + weekly bar chart */}
+        {/* Training progress — practical / theory split + weekly bar chart */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {lessonSummary?.total_required > 0 && (
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-center gap-5">
-                <div className="relative w-[68px] h-[68px] shrink-0">
-                  <RadialBarChart
-                    width={68} height={68} cx="50%" cy="50%"
-                    innerRadius="78%" outerRadius="100%"
-                    data={ringData} startAngle={90} endAngle={-270}
-                  >
-                    <PolarAngleAxis type="number" domain={[0, 100]} tick={false} axisLine={false} />
-                    <RadialBar background={{ fill: "#f1f2f4" }} dataKey="value" cornerRadius={20} isAnimationActive={false} />
-                  </RadialBarChart>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-black text-gray-900">{Math.round(trainingPct)}%</span>
+          {lessonSummary && (lessonSummary.practical_required > 0 || lessonSummary.theory_required > 0) && (
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+              <p className="text-sm font-bold text-gray-800">Training Progress</p>
+
+              {/* Practical */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+                    <span className="text-xs font-semibold text-gray-600">Practical</span>
                   </div>
+                  <span className="text-sm font-extrabold text-gray-900 tabular-nums">
+                    {lessonSummary.practical_completed}
+                    <span className="text-xs font-semibold text-gray-400"> / {lessonSummary.practical_required}</span>
+                  </span>
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm font-bold text-gray-800">Training Progress</p>
-                    <span className="text-sm font-extrabold text-gray-900">
-                      {lessonSummary.completed} / {lessonSummary.total_required} lessons
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2.5">
-                    <div
-                      className="h-2.5 rounded-full transition-all"
-                      style={{ width: `${trainingPct}%`, background: cfg.color }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[11px] text-gray-400 mt-1">
-                    <span>{lessonSummary.remaining} remaining</span>
-                    <span className="font-semibold text-gray-500">{Math.round(trainingPct)}%</span>
-                  </div>
+                <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full bg-orange-400 transition-all"
+                    style={{ width: `${lessonSummary.practical_required > 0 ? Math.min(100, (lessonSummary.practical_completed / lessonSummary.practical_required) * 100) : 0}%` }}
+                  />
                 </div>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  {Math.max(0, lessonSummary.practical_required - lessonSummary.practical_completed)} remaining
+                </p>
+              </div>
+
+              {/* Theory */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+                    <span className="text-xs font-semibold text-gray-600">Theory</span>
+                  </div>
+                  <span className="text-sm font-extrabold text-gray-900 tabular-nums">
+                    {lessonSummary.theory_completed}
+                    <span className="text-xs font-semibold text-gray-400"> / {lessonSummary.theory_required}</span>
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full bg-blue-400 transition-all"
+                    style={{ width: `${lessonSummary.theory_required > 0 ? Math.min(100, (lessonSummary.theory_completed / lessonSummary.theory_required) * 100) : 0}%` }}
+                  />
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  {Math.max(0, lessonSummary.theory_required - lessonSummary.theory_completed)} remaining
+                </p>
               </div>
             </div>
           )}
 
-          <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 ${lessonSummary?.total_required > 0 ? "lg:col-span-3" : "lg:col-span-5"}`}>
+          <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 ${lessonSummary && (lessonSummary.practical_required > 0 || lessonSummary.theory_required > 0) ? "lg:col-span-3" : "lg:col-span-5"}`}>
             <div className="flex items-center justify-between mb-1">
               <p className="text-sm font-bold text-gray-800">Weekly Training Hours</p>
               <span className="text-xs font-semibold text-gray-400">{fmtDuration(weeklyTotalMinutes)} this week</span>
