@@ -11,7 +11,7 @@ const PageContent = memo(function PageContent() {
 
 export default function WorkspaceLayout() {
   return (
-    <div className="min-h-screen bg-gray-50 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="pt-16">
         <PageContent />

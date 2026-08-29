@@ -97,7 +97,7 @@ export default function StudentDashboard() {
   }));
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-background">
       <StudentHeader student={student} onUpdate={setStudent} />
 
       <div className="p-6 space-y-6">

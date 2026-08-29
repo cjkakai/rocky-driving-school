@@ -7,8 +7,8 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { dashboardAPI } from "../../api/dashboard.api";
 import { fmt } from "../../utils/students.utils";
 
-const COLOR = "#c41820";
-const GRAD_ID = "revRockyGrad";
+const COLOR = "#2563eb";
+const GRAD_ID = "revBlueGrad";
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;

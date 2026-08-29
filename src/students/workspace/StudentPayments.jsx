@@ -61,7 +61,7 @@ export default function StudentPayments() {
 
   return (
     <>
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-background">
       <div className="p-6 space-y-5">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-3">

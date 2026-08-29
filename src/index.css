@@ -4,7 +4,7 @@
 :root {
   --font-size: 16px;
 
-  --background: #f8f9fa;
+  --background: #f5f1ee;
   --foreground: #333333;
 
   /* Rocky brand palette */
@@ -14,7 +14,7 @@
   --rocky-yellow:     #ffd700;
   --rocky-yellow-dark:#f5c400;
   --rocky-white:      #ffffff;
-  --rocky-off-white:  #f8f9fa;
+  --rocky-off-white:  #f5f1ee;
   --rocky-dark:       #333333;
   --rocky-muted:      #6c757d;
 
@@ -25,9 +25,9 @@
   --accent:           var(--rocky-yellow);
   --accent-dark:      var(--rocky-yellow-dark);
 
-  --secondary: #f1f3f5;
-  --muted:     #ececf0;
-  --border:    rgba(0, 0, 0, 0.1);
+  --secondary: #f3efec;
+  --muted:     #f7f5f3;
+  --border:    rgba(26, 10, 11, 0.1);
   --ring:      var(--rocky-red);
   --radius:    0.625rem;
 

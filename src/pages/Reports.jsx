@@ -67,7 +67,7 @@ export default function Reports() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 space-y-5">
+    <div className="min-h-screen bg-background p-6 space-y-5">
 
       {/* ── Header ── */}
       <div className="flex flex-wrap items-start justify-between gap-4">

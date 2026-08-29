@@ -21,7 +21,7 @@ function CourseSelectorBar({ allCourses, selectedCourse, onSelect }) {
   if (allCourses.length === 0) return null;
 
   return (
-    <div className="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-wrap">
+    <div className="bg-[#f7f3f0] border-b border-[#e8dfdb] px-6 py-3 flex items-center gap-3 flex-wrap">
       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0">
         Course
       </span>
@@ -123,7 +123,7 @@ export default function StudentWorkspaceLayout() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-gray-50">
+      <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-background">
         <div className="w-8 h-8 rounded-full border-2 border-[#c41820] border-t-transparent animate-spin" />
       </div>
     );
@@ -131,7 +131,7 @@ export default function StudentWorkspaceLayout() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] gap-4 bg-gray-50">
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] gap-4 bg-background">
         <p className="text-red-600 font-semibold">{error}</p>
         <button onClick={() => navigate(backPath)} className="text-sm text-[#c41820] font-semibold hover:underline">
           ← Back to Students
@@ -147,7 +147,7 @@ export default function StudentWorkspaceLayout() {
   const activeCourseCount = (student.student_courses ?? []).filter((sc) => sc.status !== "transferred").length;
 
   return (
-    <div className="flex h-[calc(100vh-64px)] bg-gray-50">
+    <div className="flex h-[calc(100vh-64px)] bg-background">
 
       {/* ── Sidebar ── */}
       <aside className="w-64 shrink-0 bg-white border-r border-gray-100 flex flex-col overflow-y-auto">
@@ -222,7 +222,7 @@ export default function StudentWorkspaceLayout() {
         />
 
         {/* Page content */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div className="flex-1 overflow-y-auto bg-background">
           <Outlet context={{ student, setStudent, selectedCourse, setSelectedCourseId, allCourses }} />
         </div>
       </div>

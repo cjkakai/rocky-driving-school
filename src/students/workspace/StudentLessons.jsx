@@ -239,7 +239,7 @@ export default function StudentLessons() {
   const weeklyTotalMinutes = weeklyData.reduce((s, d) => s + d.minutes, 0);
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-background">
       <div className="p-6 space-y-5">
         {/* Summary cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

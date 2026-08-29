@@ -177,7 +177,7 @@ export default function StudentOverview() {
     .slice(0, 8);
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-background">
       <div className="p-6 space-y-6">
 
         {/* Enrollment summary strip */}

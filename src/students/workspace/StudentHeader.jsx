@@ -21,7 +21,7 @@ export default function StudentHeader({ student, onUpdate }) {
   ) || student?.student_courses?.[0];
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+    <div className="bg-[#f7f3f0] border-b border-[#e8dfdb] px-6 py-4 sticky top-0 z-10">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
         <button

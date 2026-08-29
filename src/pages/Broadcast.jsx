@@ -137,7 +137,7 @@ export default function Broadcast() {
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
   return (
-    <div className="min-h-screen bg-gray-200 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <BroadcastHeader
         step={step}
         selectedCount={selected.size}

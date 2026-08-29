@@ -30,19 +30,19 @@ export default function Navbar() {
   const initials = user?.username?.slice(0, 2).toUpperCase();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-md border-b border-gray-200/60 flex items-center justify-between px-6 z-50">
+    <nav className="fixed top-0 left-0 right-0 h-16 bg-[#1a0a0b]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 z-50 shadow-sm shadow-[#1a0a0b]/10">
 
       {/* Left */}
       <div className="flex items-center gap-4">
-        <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-muted/70 transition-colors">
+        <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white">
           <Menu className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-3">
-          <img src="/images.png" alt="Rocky" className="w-9 h-9 rounded-lg object-cover shadow-sm" />
+          <img src="/images.png" alt="Rocky" className="w-9 h-9 rounded-lg object-cover shadow-sm ring-2 ring-white/10" />
           <div>
-            <h1 className="font-semibold text-gray-900">Rocky Driving School</h1>
-            <p className="text-xs text-muted-foreground">Driving School Management</p>
+            <h1 className="font-semibold text-white">Rocky Driving School</h1>
+            <p className="text-xs text-white/65">Driving School Management</p>
           </div>
         </div>
       </div>
@@ -52,15 +52,15 @@ export default function Navbar() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen((prev) => !prev)}
-            className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-muted/70 transition-all"
+            className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/10 transition-all"
           >
-            <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold shadow-sm">
+            <div className="w-8 h-8 bg-white text-[#1a0a0b] rounded-full flex items-center justify-center text-sm font-semibold shadow-sm">
               {initials || <User className="w-4 h-4" />}
             </div>
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium leading-tight">{user?.username}</p>
+              <p className="text-sm font-medium leading-tight text-white">{user?.username}</p>
             </div>
-            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+            <ChevronDown className={`w-4 h-4 text-white/80 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
           </button>
 
           {dropdownOpen && (

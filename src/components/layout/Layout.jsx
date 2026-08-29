@@ -47,7 +47,7 @@ const Overlay = memo(function Overlay() {
 
 export default function DashboardLayout() {
   return (
-    <div className="min-h-screen bg-gray-100 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <Sidebar />
       <Overlay />
