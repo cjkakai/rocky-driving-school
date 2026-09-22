@@ -31,6 +31,7 @@ const adminOnly = ["super_admin"];
 
 const router = createBrowserRouter([
   { path: "/", element: <Login /> },
+  { path: "/login", element: <Navigate to="/" replace /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   {
     path: "/dashboard",
@@ -122,6 +123,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+  { path: "*", element: <Navigate to="/" replace /> },
 ]);
 
 export default router;
